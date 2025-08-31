@@ -37,7 +37,7 @@ const analyzeRequestSchema = Joi.object({
     includeImages: Joi.boolean().optional(),
     deepAnalysis: Joi.boolean().optional()
   }).optional()
-});
+}).unknown(true); // <-- ADD THIS PART
 
 /**
  * POST /api/analyze
@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
     if (error) {
 
       console.error('--- VALIDATION FAILED ---:', error.details[0].message);
-      
+
       return res.status(400).json({
         error: 'Validation Error',
         message: error.details[0].message,
