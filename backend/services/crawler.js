@@ -108,7 +108,7 @@ class WebCrawler {
 
       // Wait for the page to be fully rendered
       await page.waitForSelector(this.options.waitForSelector, { timeout: 10000 });
-      await page.waitForTimeout(2000); // Additional wait for dynamic content
+      await new Promise(r => setTimeout(r, 2000)); // Additional wait for dynamic content
 
       // Extract comprehensive page data
       const pageData = await page.evaluate(() => {
