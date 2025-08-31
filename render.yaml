@@ -18,6 +18,6 @@ services:
       - key: DATABASE_URL
         fromDatabase:
           name: seo-tool-db # Must match the DB name from Step 1
-          property: internalConnectionString
+          property: connectionString # <- The fix is here
       - key: PUPPETEER_EXECUTABLE_PATH
         value: /usr/bin/google-chrome-stable
