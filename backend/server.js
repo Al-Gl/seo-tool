@@ -3,6 +3,8 @@
  * Main entry point for the Express.js API server
  */
 
+console.log('--- SERVER.JS FILE V3 STARTED ---');
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -54,7 +56,9 @@ app.use((req, res, next) => {
 /**
  * Health check endpoint
  */
+console.log('--- SETTING UP /api/health ROUTE ---');
 app.get('/api/health', async (req, res) => {
+  console.log('--- /api/health ROUTE WAS HIT ---');
   try {
     // Test database connection
     const client = await pool.connect();
