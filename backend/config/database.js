@@ -6,27 +6,26 @@
 const { Pool } = require('pg');
 
 /**
- * PostgreSQL connection configuration
+ * Create a new PostgreSQL connection pool.
+ *
+ * In a production environment like Render, all connection details are provided
+ * in a single DATABASE_URL environment variable. This is the modern, standard
+ * way to connect to hosted databases.
+ *
+ * The old method of using individual DB_USER, DB_HOST, etc., is good for
+ * local setups but is replaced by the connection string for deployment.
  */
-const config = {
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'seo_analyzer',
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: parseInt(process.env.DB_MAX_CONNECTIONS || '20'),
   idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
   connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '2000'),
-};
+});
+
 
 /**
- * Create connection pool
- */
-const pool = new Pool(config);
-
-/**
- * Pool event handlers
+ * Pool event handlers (Your original code, preserved)
  */
 pool.on('connect', (client) => {
   console.log(`New client connected to database (${client.processID})`);
@@ -45,7 +44,7 @@ pool.on('remove', (client) => {
 });
 
 /**
- * Test database connection
+ * Test database connection (Your original code, preserved)
  * @returns {Promise<boolean>} Connection success status
  */
 async function testConnection() {
@@ -53,11 +52,11 @@ async function testConnection() {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW() as current_time, version() as version');
     client.release();
-    
+
     console.log('Database connection successful:');
     console.log('- Time:', result.rows[0].current_time);
     console.log('- Version:', result.rows[0].version.split(' ').slice(0, 2).join(' '));
-    
+
     return true;
   } catch (error) {
     console.error('Database connection failed:', error.message);
@@ -66,15 +65,15 @@ async function testConnection() {
 }
 
 /**
- * Initialize database tables
+ * Initialize database tables (Your original code, preserved)
  * Creates necessary tables if they don't exist
  */
 async function initializeDatabase() {
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
-    
+
     // Create analyses table
     await client.query(`
       CREATE TABLE IF NOT EXISTS analyses (
@@ -92,7 +91,7 @@ async function initializeDatabase() {
         report_url VARCHAR(500)
       );
     `);
-    
+
     // Create prompts table
     await client.query(`
       CREATE TABLE IF NOT EXISTS prompts (
@@ -107,7 +106,7 @@ async function initializeDatabase() {
         created_by VARCHAR(255) DEFAULT 'system'
       );
     `);
-    
+
     // Create analysis_prompts junction table
     await client.query(`
       CREATE TABLE IF NOT EXISTS analysis_prompts (
@@ -118,32 +117,18 @@ async function initializeDatabase() {
         PRIMARY KEY (analysis_id, prompt_id)
       );
     `);
-    
+
     // Create indexes for better performance
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_analyses_status ON analyses(status);
-    `);
-    
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_analyses_created_at ON analyses(created_at);
-    `);
-    
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_analyses_url ON analyses(url);
-    `);
-    
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_prompts_category ON prompts(category);
-    `);
-    
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_prompts_active ON prompts(is_active);
-    `);
-    
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_analyses_status ON analyses(status);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_analyses_created_at ON analyses(created_at);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_analyses_url ON analyses(url);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_prompts_category ON prompts(category);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_prompts_active ON prompts(is_active);`);
+
     // Insert default prompts if they don't exist
     await client.query(`
       INSERT INTO prompts (name, description, content, category)
-      VALUES 
+      VALUES
         (
           'seo-technical-analysis',
           'Comprehensive technical SEO analysis',
@@ -164,10 +149,10 @@ async function initializeDatabase() {
         )
       ON CONFLICT (name) DO NOTHING;
     `);
-    
+
     await client.query('COMMIT');
     console.log('Database tables initialized successfully');
-    
+
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Database initialization failed:', error);
@@ -178,7 +163,7 @@ async function initializeDatabase() {
 }
 
 /**
- * Execute a query with parameters
+ * Execute a query with parameters (Your original code, preserved)
  * @param {string} text - SQL query text
  * @param {Array} params - Query parameters
  * @returns {Promise<Object>} Query result
@@ -206,7 +191,7 @@ async function query(text, params) {
 }
 
 /**
- * Get a client from the pool for transactions
+ * Get a client from the pool for transactions (Your original code, preserved)
  * @returns {Promise<Object>} Database client
  */
 async function getClient() {
@@ -214,13 +199,14 @@ async function getClient() {
 }
 
 /**
- * Close all connections in the pool
+ * Close all connections in the pool (Your original code, preserved)
  */
 async function end() {
   await pool.end();
   console.log('Database connection pool closed');
 }
 
+// Export everything as before
 module.exports = {
   pool,
   query,
