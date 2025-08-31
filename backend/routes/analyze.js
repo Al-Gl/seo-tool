@@ -45,9 +45,13 @@ const analyzeRequestSchema = Joi.object({
  */
 router.post('/', async (req, res) => {
   try {
+    console.log('--- RECEIVED REQUEST BODY ---:', JSON.stringify(req.body, null, 2));
     // Validate request
     const { error, value } = analyzeRequestSchema.validate(req.body);
     if (error) {
+
+      console.error('--- VALIDATION FAILED ---:', error.details[0].message);
+      
       return res.status(400).json({
         error: 'Validation Error',
         message: error.details[0].message,
