@@ -1,14 +1,19 @@
 # render.yaml
+databases: # Add this whole section
+  - name: seo-tool-db
+    region: frankfurt
+    plan: free
+
 services:
   - type: web # This is your main API service
     name: seo-tool-api
     env: node
     region: frankfurt # Use the same region as your database
     rootDir: ./backend
-    plan: free # Start on the free plan
+    plan: free
     buildFilter:
       paths:
-      - backend/**
+        - backend/**
     buildCommand: "npm install && npx puppeteer browsers install chrome"
     startCommand: "npm start"
     healthCheckPath: /api/health # Add a simple /health endpoint to your API for this
@@ -17,7 +22,7 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: seo-tool-db # Must match the DB name from Step 1
-          property: connectionString # <- The fix is here
+          name: seo-tool-db # This now correctly refers to the DB defined above
+          property: connectionString
       - key: PUPPETEER_EXECUTABLE_PATH
         value: /usr/bin/google-chrome-stable
