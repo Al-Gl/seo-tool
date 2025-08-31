@@ -10,7 +10,7 @@ services:
     env: node
     region: frankfurt
     rootDir: backend
-    plan: free
+    plan: starter
     buildFilter:
       paths:
         - backend/**
