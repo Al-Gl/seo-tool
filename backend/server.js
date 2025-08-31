@@ -54,7 +54,7 @@ app.use((req, res, next) => {
 /**
  * Health check endpoint
  */
-app.get('/api/health', async (req, res) => {
+app.get('/health', async (req, res) => {
   try {
     // Test database connection
     const client = await pool.connect();

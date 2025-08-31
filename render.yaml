@@ -16,7 +16,7 @@ services:
         - backend/**
     buildCommand: "npm install && npx puppeteer browsers install chrome"
     startCommand: "npm start"
-    healthCheckPath: /api/health # Add a simple /health endpoint to your API for this
+    healthCheckPath: /health # Add a simple /health endpoint to your API for this
     envVars:
       - key: NODE_ENV
         value: production
