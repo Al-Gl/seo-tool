@@ -164,7 +164,7 @@ export default function HomePage() {
     // Prevent multiple submissions
     if (isSubmitting || loadingState.isLoading) {
       console.log('⚠️ Submission blocked - already in progress');
-      toast.warn('Analysis already in progress...');
+      toast.error('Analysis already in progress...');
       return;
     }
     
