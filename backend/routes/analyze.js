@@ -362,7 +362,10 @@ async function processAnalysis(analysisId, url, promptIds, options) {
     console.log(`Using ${prompts.length} prompts for analysis: ${analysisId}`);
 
     // Step 3: Run AI analysis
-    const aiAnalysis = await aiAnalyzer.analyzeCrawlData(crawlData, prompts);
+    // const aiAnalysis = await aiAnalyzer.analyzeCrawlData(crawlData, prompts);
+
+    console.log('--- SKIPPING AI ANALYSIS FOR MEMORY TEST ---');
+    const aiAnalysis = { seoScores: {}, summary: "AI Disabled for Test", recommendations: [], promptResults: [], comprehensiveAnalysis: {} };
     
     // Store AI analysis
     await client.query(`
