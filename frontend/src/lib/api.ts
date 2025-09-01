@@ -6,10 +6,14 @@ import {
   ApiResponse 
 } from '@/types';
 
-// Create axios instance with base configuration
+// This is the key fix. It reads the environment variable for production,
+// but provides a safe fallback for local development.
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+// Create axios instance with the correct base URL
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+    baseURL: baseURL, // Use the variable here
     timeout: 30000,
     headers: {
       'Content-Type': 'application/json',
