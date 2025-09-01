@@ -109,7 +109,7 @@ export const useAnalysisFlow = () => {
       setLoadingState({ isLoading: true, message: 'Submitting analysis...' });
       
       const response = await submitMutation.mutateAsync(data);
-      setCurrentAnalysisId(response.id);
+      setCurrentAnalysisId(response.analysisId);
       
       setLoadingState({ 
         isLoading: true, 
