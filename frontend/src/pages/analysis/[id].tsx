@@ -357,9 +357,9 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
             )}
 
             {/* Completed State - Show Results */}
-            {isCompleted && analysis.results && (
+            {isCompleted && analysis.seoAnalysis && (
               <ResultsDashboard
-                results={analysis.results}
+                results={analysis}
                 analysisId={analysisId}
                 analysisUrl={analysis.url}
                 isGeneratingPdf={isGeneratingPdf}
