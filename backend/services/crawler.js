@@ -110,12 +110,10 @@ class WebCrawler {
         throw new Error(`Failed to load page: ${response ? response.status() : 'No response'}`);
       }
 
-      // Wait for the page to be fully rendered
-      await page.waitForSelector(this.options.waitForSelector, { timeout: 10000 });
-      await new Promise(r => setTimeout(r, 2000)); // Additional wait for dynamic content
 
       // Extract comprehensive page data
       console.log('[Crawler Step 6] Evaluating page content...');
+
       const pageData = await page.evaluate(() => {
         const data = {
           url: window.location.href,
@@ -293,7 +291,7 @@ class WebCrawler {
         return data;
       });
       console.log('[Crawler Step 7] Page evaluation complete.');
-      
+
       // Get performance metrics
       const performanceMetrics = await page.metrics();
       
