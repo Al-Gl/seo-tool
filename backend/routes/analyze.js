@@ -188,6 +188,34 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.get('/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(
+      'SELECT status FROM analyses WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Not Found', status: 'not_found' });
+    }
+
+    const status = result.rows[0].status;
+    
+    // Estimate progress based on status for the frontend
+    let progress = 0;
+    if (status === 'pending') progress = 10;
+    if (status === 'processing') progress = 50;
+    if (status === 'completed' || status === 'failed' || status === 'cancelled') progress = 100;
+
+    res.json({ status, progress });
+
+  } catch (error) {
+    console.error('Error fetching analysis status:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 /**
  * GET /api/analyze
  * Get all analyses with optional filtering
@@ -362,11 +390,9 @@ async function processAnalysis(analysisId, url, promptIds, options) {
     console.log(`Using ${prompts.length} prompts for analysis: ${analysisId}`);
 
     // Step 3: Run AI analysis
-    // const aiAnalysis = await aiAnalyzer.analyzeCrawlData(crawlData, prompts);
+    const aiAnalysis = await aiAnalyzer.analyzeCrawlData(crawlData, prompts);
 
-    console.log('--- SKIPPING AI ANALYSIS FOR MEMORY TEST ---');
-    const aiAnalysis = { seoScores: {}, summary: "AI Disabled for Test", recommendations: [], promptResults: [], comprehensiveAnalysis: {} };
-    
+
     // Store AI analysis
     await client.query(`
       UPDATE analyses 
