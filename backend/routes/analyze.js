@@ -328,6 +328,9 @@ async function processAnalysis(analysisId, url, promptIds, options) {
 
     // Step 1: Crawl the URL
     const crawlData = await crawler.crawlUrl(url);
+
+    // --- ADD THIS LINE TO SHUT DOWN THE BROWSER AND FREE UP MEMORY ---
+    await crawler.close();
     
     // Store crawl data
     await client.query(`
