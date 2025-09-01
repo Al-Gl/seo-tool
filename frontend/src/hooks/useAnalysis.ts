@@ -99,7 +99,7 @@ export const useAnalysisFlow = () => {
   
   const analysis = useAnalysis(currentAnalysisId);
   const status = useAnalysisStatus(currentAnalysisId, {
-    enabled: !!currentAnalysisId && loadingState.isLoading
+    enabled: !!currentAnalysisId
   });
 
   // Submit analysis
