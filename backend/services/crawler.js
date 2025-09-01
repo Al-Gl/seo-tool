@@ -54,14 +54,16 @@ class WebCrawler {
    * @returns {Promise<Object>} Extracted data
    */
   async crawlUrl(url) {
+    console.log('[Crawler Step 1] Starting crawlUrl function...');
     if (!this.browser) {
       await this.initialize();
     }
-
+    console.log('[Crawler Step 2] Creating new page...');
     const page = await this.browser.newPage();
     
     try {
       // Set user agent and viewport
+      console.log('[Crawler Step 3] Setting user agent and viewport...');
       await page.setUserAgent(this.options.userAgent);
       await page.setViewport(this.options.viewport);
 
@@ -95,13 +97,15 @@ class WebCrawler {
       });
 
       // Navigate to the URL
+      console.log(`[Crawler Step 4] Navigating to URL: ${url}`);
       const startTime = Date.now();
       const response = await page.goto(url, {
         waitUntil: ['networkidle0', 'domcontentloaded'],
         timeout: this.options.timeout
       });
       const loadTime = Date.now() - startTime;
-      
+      console.log(`[Crawler Step 5] Navigation complete with status: ${response.status()}`);
+
       if (!response || !response.ok()) {
         throw new Error(`Failed to load page: ${response ? response.status() : 'No response'}`);
       }
@@ -111,6 +115,7 @@ class WebCrawler {
       await new Promise(r => setTimeout(r, 2000)); // Additional wait for dynamic content
 
       // Extract comprehensive page data
+      console.log('[Crawler Step 6] Evaluating page content...');
       const pageData = await page.evaluate(() => {
         const data = {
           url: window.location.href,
@@ -287,7 +292,8 @@ class WebCrawler {
 
         return data;
       });
-
+      console.log('[Crawler Step 7] Page evaluation complete.');
+      
       // Get performance metrics
       const performanceMetrics = await page.metrics();
       
