@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import toast from 'react-hot-toast';
@@ -25,13 +25,16 @@ interface AnalysisPageProps {
 }
 
 export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
+  // --- ALL HOOKS ARE NOW AT THE TOP LEVEL ---
   const router = useRouter();
   const [isRerunning, setIsRerunning] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
-  
   const { data: analysis, isLoading, error, refetch } = useAnalysis(analysisId);
-  
+  const submitAnalysis = useSubmitAnalysis();
+  const [retryCount, setRetryCount] = React.useState(0);
+  const [showRetry, setShowRetry] = React.useState(false);
+
   // Debug logging
   console.log('📄 Analysis page - Current state:', {
     analysisId,
@@ -53,10 +56,28 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
       console.log('📄 Analysis page unmounted for ID:', analysisId);
     };
   }, [analysisId]);
-  const submitAnalysis = useSubmitAnalysis();
 
-  // Handle loading state (including retries)
-  if (isLoading || (error && retryCount < 3 && !showRetry)) {
+  // Add retry mechanism with delay for temporary failures
+  React.useEffect(() => {
+    if (error && retryCount < 3) {
+      console.log(`🔄 Analysis page error detected, will retry in 2s (attempt ${retryCount + 1}/3)`);
+      const retryTimer = setTimeout(() => {
+        console.log(`🔄 Retrying analysis fetch for ID: ${analysisId}`);
+        setRetryCount(prev => prev + 1);
+        refetch();
+      }, 2000);
+      
+      return () => clearTimeout(retryTimer);
+    } else if (error && retryCount >= 3) {
+      console.log('❌ Max retries reached, showing error page');
+      setShowRetry(true);
+    }
+  }, [error, retryCount, refetch, analysisId]);
+  
+  // --- CONDITIONAL RETURNS NOW HAPPEN AFTER ALL HOOKS ---
+
+  // Handle loading state
+  if (isLoading) {
     return (
       <Layout 
         title="Loading Analysis - SEO Analyzer"
@@ -75,28 +96,8 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
     );
   }
 
-  // Add retry mechanism with delay for temporary failures
-  const [retryCount, setRetryCount] = React.useState(0);
-  const [showRetry, setShowRetry] = React.useState(false);
-  
-  React.useEffect(() => {
-    if (error && retryCount < 3) {
-      console.log(`🔄 Analysis page error detected, will retry in 2s (attempt ${retryCount + 1}/3)`);
-      const retryTimer = setTimeout(() => {
-        console.log(`🔄 Retrying analysis fetch for ID: ${analysisId}`);
-        setRetryCount(prev => prev + 1);
-        refetch();
-      }, 2000);
-      
-      return () => clearTimeout(retryTimer);
-    } else if (error && retryCount >= 3) {
-      console.log('❌ Max retries reached, showing error page');
-      setShowRetry(true);
-    }
-  }, [error, retryCount, refetch, analysisId]);
-  
   // Handle error state (only after retries)
-  if ((error || !analysis) && showRetry) {
+  if (!analysis || (error && showRetry)) {
     return (
       <Layout 
         title="Analysis Not Found - SEO Analyzer"
@@ -128,6 +129,8 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
       </Layout>
     );
   }
+
+  // --- REST OF THE COMPONENT LOGIC ---
 
   // Handle in-progress analysis
   const isInProgress = ['pending', 'crawling', 'analyzing'].includes(analysis.status);
@@ -272,7 +275,7 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
                   variant="ghost"
                   size="sm"
                   onClick={handleRerun}
-                  loading={isRerunning}
+                  disabled={isRerunning}
                   className="flex items-center"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
@@ -291,8 +294,9 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
               <div className="mb-8">
                 <ProgressTracker
                   status={analysis.status}
-                  progress={analysis.progress}
-                  estimatedTimeRemaining={analysis.estimatedTimeRemaining}
+                  // These props may need adjustment based on your actual data structure
+                  // progress={analysis.progress} 
+                  // estimatedTimeRemaining={analysis.estimatedTimeRemaining}
                 />
               </div>
             )}
@@ -312,7 +316,7 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
                   <div className="flex justify-center space-x-4">
                     <Button
                       onClick={handleRerun}
-                      loading={isRerunning}
+                      disabled={isRerunning}
                     >
                       <RefreshCw className="w-4 h-4 mr-2" />
                       Try Again
@@ -341,7 +345,7 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
                     You can start a new analysis anytime.
                   </p>
                   <div className="flex justify-center space-x-4">
-                    <Button onClick={handleRerun} loading={isRerunning}>
+                    <Button onClick={handleRerun} disabled={isRerunning}>
                       <RefreshCw className="w-4 h-4 mr-2" />
                       Restart Analysis
                     </Button>
