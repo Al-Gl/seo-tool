@@ -361,13 +361,15 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
             )}
 
             {/* Completed State - Show Results */}
+            {/* Completed State - Show Results */}
             {isCompleted && analysis.seoAnalysis && analysis.seoAnalysis.summary && (
-              <div>
-              <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Test: Analysis Summary</h1>
-              <pre style={{ whiteSpace: 'pre-wrap', background: '#f0f0f0', padding: '1rem', border: '1px solid #ccc' }}>
-                {JSON.stringify(analysis.seoAnalysis.summary, null, 2)}
-              </pre>
-            </div>
+              <ResultsDashboard
+                results={analysis}
+                analysisId={analysisId}
+                analysisUrl={analysis.url}
+                isGeneratingPdf={isGeneratingPdf}
+                onShareResults={handleShare}
+              />
             )}
 
             {/* Polling notice for in-progress analysis */}
