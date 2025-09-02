@@ -361,7 +361,7 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
             )}
 
             {/* Completed State - Show Results */}
-            {isCompleted && analysis.seoAnalysis && (
+            {isCompleted && analysis.seoAnalysis && analysis.seoAnalysis.summary && (
               <ResultsDashboard
                 results={analysis}
                 analysisId={analysisId}
