@@ -10,7 +10,7 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-space-900 text-gray-100 antialiased;
   }
 }
 
@@ -36,7 +36,7 @@
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-soft border border-gray-200 p-6;
+    @apply bg-space-800 rounded-xl shadow-soft border border-space-700 p-6;
   }
   
   .card-hover {
@@ -54,7 +54,21 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-accent-400 to-purple-400 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-pulsar {
+    @apply bg-gradient-to-r from-accent-400 via-primary-400 to-purple-400 bg-clip-text text-transparent;
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease-in-out infinite;
+  }
+  
+  .bg-space-gradient {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  }
+  
+  .hero-glow {
+    box-shadow: 0 0 100px rgba(56, 189, 248, 0.1), 0 0 200px rgba(129, 140, 248, 0.05);
   }
   
   .animate-fade-in {
@@ -98,6 +112,15 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }
 

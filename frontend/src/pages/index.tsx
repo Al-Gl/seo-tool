@@ -215,7 +215,7 @@ export default function HomePage() {
         title="SEO Analysis in Progress - SEO Analyzer"
         description="Your SEO analysis is being processed. Please wait for the results."
       >
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12">
+        <div className="min-h-screen bg-space-gradient py-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
               <Button
@@ -225,10 +225,10 @@ export default function HomePage() {
               >
                 ← Start New Analysis
               </Button>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-white mb-2">
                 Analyzing Your Website
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-300">
                 We're conducting a comprehensive SEO analysis of your website
               </p>
             </div>
@@ -243,18 +243,18 @@ export default function HomePage() {
             />
 
             {errorState.hasError && (
-              <Card className="mt-6 border-danger-200">
+              <Card className="mt-6 border-danger-600 bg-space-800">
                 <CardContent className="p-6 text-center">
-                  <div className="text-danger-600 mb-2">
+                  <div className="text-danger-400 mb-2">
                     <Search className="w-8 h-8 mx-auto" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-white mb-2">
                     Analysis Failed
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-gray-300 mb-4">
                     {errorState.message || 'Something went wrong during the analysis.'}
                   </p>
-                  <Button onClick={handleStartOver}>
+                  <Button onClick={handleStartOver} className="bg-accent-500 hover:bg-accent-600 text-white">
                     Try Again
                   </Button>
                 </CardContent>
@@ -269,34 +269,39 @@ export default function HomePage() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-space-gradient py-20 overflow-hidden">
+        {/* Space background elements */}
+        <div className="absolute inset-0">
+          <div className="hero-glow absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20"></div>
+          <div className="hero-glow absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-10"></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-4 py-2 bg-accent-900 bg-opacity-30 text-accent-300 rounded-full text-sm font-medium mb-6 border border-accent-800">
               <Star className="w-4 h-4 mr-2" />
               Trusted by 12,000+ Marketing Professionals
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Professional{' '}
-              <span className="text-gradient">SEO Analysis</span>{' '}
-              <br />Powered by AI
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              Pinpoint Your SEO Weaknesses{' '}
+              <br />with{' '}
+              <span className="text-gradient-pulsar">Stellar Accuracy</span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Get comprehensive SEO insights, actionable recommendations, and detailed 
-              performance analysis to boost your website's search rankings and drive more traffic.
+            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+              Professional SEO analysis powered by AI. Get comprehensive insights, 
+              actionable recommendations, and detailed performance analysis to dominate search rankings.
             </p>
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-3">
-                    <stat.icon className="w-6 h-6 text-primary-600" />
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-accent-900 bg-opacity-30 rounded-full mb-3 border border-accent-800">
+                    <stat.icon className="w-6 h-6 text-accent-400" />
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div className="text-2xl font-bold text-white">{stat.value}</div>
+                  <div className="text-sm text-gray-400">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -313,13 +318,13 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-space-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Why Choose Our SEO Analyzer?
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Why Choose PulsarRank?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               Our advanced AI-powered platform provides comprehensive analysis 
               and actionable insights to help you dominate search results.
             </p>
@@ -327,15 +332,15 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300">
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow duration-300 bg-space-700 border-space-600">
                 <CardContent className="p-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-6">
-                    <feature.icon className="w-8 h-8 text-primary-600" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-900 bg-opacity-30 rounded-full mb-6 border border-accent-800">
+                    <feature.icon className="w-8 h-8 text-accent-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h3 className="text-xl font-semibold text-white mb-4">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-300">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -346,15 +351,15 @@ export default function HomePage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-space-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                 Everything You Need for{' '}
-                <span className="text-primary-600">SEO Success</span>
+                <span className="text-accent-400">SEO Dominance</span>
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-gray-300 mb-8">
                 Our comprehensive analysis covers all aspects of SEO to give you 
                 a complete picture of your website's performance and opportunities.
               </p>
@@ -362,54 +367,54 @@ export default function HomePage() {
               <div className="space-y-4 mb-8">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-success-600 mr-3 flex-shrink-0" />
-                    <span className="text-gray-700">{benefit}</span>
+                    <CheckCircle className="w-5 h-5 text-accent-400 mr-3 flex-shrink-0" />
+                    <span className="text-gray-300">{benefit}</span>
                   </div>
                 ))}
               </div>
 
-              <Button size="lg" className="text-lg px-8 py-4">
+              <Button size="lg" className="text-lg px-8 py-4 bg-accent-500 hover:bg-accent-600 text-white">
                 Start Free Analysis
               </Button>
             </div>
 
             <div className="lg:pl-12">
-              <Card className="p-8">
+              <Card className="p-8 bg-space-800 border-space-700">
                 <div className="space-y-6">
                   <div className="text-center">
-                    <BarChart3 className="w-16 h-16 text-primary-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <BarChart3 className="w-16 h-16 text-accent-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">
                       Sample SEO Score
                     </h3>
-                    <div className="text-3xl font-bold text-success-600 mb-2">85/100</div>
-                    <p className="text-gray-600 text-sm">
+                    <div className="text-3xl font-bold text-accent-400 mb-2">85/100</div>
+                    <p className="text-gray-400 text-sm">
                       See how your website measures up
                     </p>
                   </div>
                   
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Technical SEO</span>
-                      <span className="text-sm font-semibold text-success-600">92%</span>
+                      <span className="text-sm text-gray-400">Technical SEO</span>
+                      <span className="text-sm font-semibold text-accent-400">92%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-success-500 h-2 rounded-full" style={{width: '92%'}}></div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Content Quality</span>
-                      <span className="text-sm font-semibold text-warning-600">78%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-warning-500 h-2 rounded-full" style={{width: '78%'}}></div>
+                    <div className="w-full bg-space-600 rounded-full h-2">
+                      <div className="bg-accent-500 h-2 rounded-full" style={{width: '92%'}}></div>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Performance</span>
-                      <span className="text-sm font-semibold text-success-600">88%</span>
+                      <span className="text-sm text-gray-400">Content Quality</span>
+                      <span className="text-sm font-semibold text-purple-400">78%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-success-500 h-2 rounded-full" style={{width: '88%'}}></div>
+                    <div className="w-full bg-space-600 rounded-full h-2">
+                      <div className="bg-purple-500 h-2 rounded-full" style={{width: '78%'}}></div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">Performance</span>
+                      <span className="text-sm font-semibold text-accent-400">88%</span>
+                    </div>
+                    <div className="w-full bg-space-600 rounded-full h-2">
+                      <div className="bg-accent-500 h-2 rounded-full" style={{width: '88%'}}></div>
                     </div>
                   </div>
                 </div>
@@ -420,19 +425,21 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+      <section className="py-20 bg-gradient-to-br from-accent-600 to-purple-600 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="hero-glow absolute top-1/2 left-1/2 w-96 h-96 rounded-full opacity-10 transform -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Improve Your SEO?
+            Ready to Dominate Search Rankings?
           </h2>
-          <p className="text-xl text-primary-100 mb-8">
-            Join thousands of marketers who trust our platform to optimize their websites 
-            and drive better results from search engines.
+          <p className="text-xl text-white text-opacity-90 mb-8">
+            Join thousands of marketers who trust PulsarRank to optimize their websites 
+            and achieve stellar search performance.
           </p>
           <Button 
             size="lg" 
-            variant="secondary"
-            className="text-lg px-8 py-4 bg-white text-primary-600 hover:bg-gray-50"
+            className="text-lg px-8 py-4 bg-white text-accent-600 hover:bg-gray-100 font-semibold"
             onClick={() => document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' })}
           >
             Start Your Free Analysis Now

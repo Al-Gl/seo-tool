@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { PulsarRankLogo } from '@/components/ui/PulsarRankLogo';
 
 interface HeaderProps {
   className?: string;
@@ -11,54 +12,49 @@ export function Header({ className = '' }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   return (
-    <header className={`bg-white border-b border-gray-200 ${className}`}>
+    <header className={`bg-space-900 border-b border-space-700 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-8 h-8 bg-primary-600 rounded-lg">
-              <Search className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">
-              SEO<span className="text-primary-600">Analyzer</span>
-            </span>
+          <Link href="/" className="flex items-center">
+            <PulsarRankLogo size="sm" showText={true} />
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               href="/" 
-              className="text-gray-700 hover:text-primary-600 transition-colors duration-200"
+              className="text-gray-300 hover:text-accent-400 transition-colors duration-200"
             >
               Home
             </Link>
             <Link 
-              href="/features" 
-              className="text-gray-700 hover:text-primary-600 transition-colors duration-200"
+              href="/blog" 
+              className="text-gray-300 hover:text-accent-400 transition-colors duration-200"
             >
-              Features
+              Blog
             </Link>
             <Link 
               href="/pricing" 
-              className="text-gray-700 hover:text-primary-600 transition-colors duration-200"
+              className="text-gray-300 hover:text-accent-400 transition-colors duration-200"
             >
               Pricing
             </Link>
             <Link 
-              href="/docs" 
-              className="text-gray-700 hover:text-primary-600 transition-colors duration-200"
+              href="/about" 
+              className="text-gray-300 hover:text-accent-400 transition-colors duration-200"
             >
-              Documentation
+              About
             </Link>
           </nav>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/signup">Get Started</Link>
+            <Button 
+              size="sm" 
+              className="bg-accent-500 hover:bg-accent-600 text-white"
+            >
+              Start Analysis
             </Button>
           </div>
 
@@ -80,42 +76,42 @@ export function Header({ className = '' }: HeaderProps) {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4 animate-fade-in">
+          <div className="md:hidden border-t border-space-700 py-4 animate-fade-in">
             <nav className="space-y-4">
               <Link 
                 href="/" 
-                className="block text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                className="block text-gray-300 hover:text-accent-400 transition-colors duration-200"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Home
               </Link>
               <Link 
-                href="/features" 
-                className="block text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                href="/blog" 
+                className="block text-gray-300 hover:text-accent-400 transition-colors duration-200"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Features
+                Blog
               </Link>
               <Link 
                 href="/pricing" 
-                className="block text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                className="block text-gray-300 hover:text-accent-400 transition-colors duration-200"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Pricing
               </Link>
               <Link 
-                href="/docs" 
-                className="block text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                href="/about" 
+                className="block text-gray-300 hover:text-accent-400 transition-colors duration-200"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Documentation
+                About
               </Link>
-              <div className="pt-4 border-t border-gray-200 space-y-2">
-                <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button size="sm" className="w-full" asChild>
-                  <Link href="/signup">Get Started</Link>
+              <div className="pt-4 border-t border-space-700 space-y-2">
+                <Button 
+                  size="sm" 
+                  className="w-full bg-accent-500 hover:bg-accent-600 text-white"
+                >
+                  Start Analysis
                 </Button>
               </div>
             </nav>

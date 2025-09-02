@@ -13,8 +13,8 @@ interface LayoutProps {
 
 export function Layout({ 
   children, 
-  title = 'SEO Analyzer - Professional Website SEO Analysis',
-  description = 'Get comprehensive SEO analysis and actionable recommendations powered by AI. Improve your website\'s search rankings with our professional SEO audit tool.',
+  title = 'PulsarRank - Pinpoint Your SEO Weaknesses with Stellar Accuracy',
+  description = 'Professional SEO analysis powered by AI. Get comprehensive insights and actionable recommendations to improve your website\'s search rankings with PulsarRank.',
   hideFooter = false 
 }: LayoutProps) {
   return (
@@ -29,7 +29,7 @@ export function Layout({
         <meta property="og:type" content="website" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:site_name" content="SEO Analyzer" />
+        <meta property="og:site_name" content="PulsarRank" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -48,7 +48,7 @@ export function Layout({
         <link rel="canonical" href={typeof window !== 'undefined' ? window.location.href : ''} />
       </Head>
       
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-space-900">
         <Header />
         
         <main className="flex-1">
