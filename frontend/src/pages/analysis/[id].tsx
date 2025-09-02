@@ -362,13 +362,12 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
 
             {/* Completed State - Show Results */}
             {isCompleted && analysis.seoAnalysis && analysis.seoAnalysis.summary && (
-              <ResultsDashboard
-                results={analysis}
-                analysisId={analysisId}
-                analysisUrl={analysis.url}
-                isGeneratingPdf={isGeneratingPdf}
-                onShareResults={handleShare}
-              />
+              <div>
+              <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Test: Analysis Summary</h1>
+              <pre style={{ whiteSpace: 'pre-wrap', background: '#f0f0f0', padding: '1rem', border: '1px solid #ccc' }}>
+                {JSON.stringify(analysis.seoAnalysis.summary, null, 2)}
+              </pre>
+            </div>
             )}
 
             {/* Polling notice for in-progress analysis */}
