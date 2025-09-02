@@ -67,4 +67,4 @@ Generate comprehensive 2000-3000 word blog posts for the SEO website, following 
 - Proper HTML structure with semantic headings
 - Code examples where relevant
 - SEO-optimized titles and meta descriptions
-- Consistent author (Aldin Glavas) and appropriate read times
+- Consistent author (PulsarRank) and appropriate read times

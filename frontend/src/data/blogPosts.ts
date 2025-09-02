@@ -89,7 +89,7 @@ export const blogPosts: BlogPost[] = [
     `,
     publishedAt: '2024-01-15',
     readTime: '5 min read',
-    author: 'Aldin Glavas',
+    author: 'PulsarRank',
     category: 'On-Page SEO'
   },
   {
@@ -323,7 +323,7 @@ export const blogPosts: BlogPost[] = [
     `,
     publishedAt: '2024-01-12',
     readTime: '7 min read',
-    author: 'Aldin Glavas',
+    author: 'PulsarRank',
     category: 'SEO Basics'
   },
   {
@@ -647,7 +647,7 @@ export const blogPosts: BlogPost[] = [
     `,
     publishedAt: '2024-01-10',
     readTime: '10 min read',
-    author: 'Aldin Glavas',
+    author: 'PulsarRank',
     category: 'Keyword Research'
   }
 ];

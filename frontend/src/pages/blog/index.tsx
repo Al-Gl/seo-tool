@@ -10,7 +10,7 @@ export default function BlogPage() {
   return (
     <Layout
       title="SEO Blog - Expert Tips and Guides | PulsarRank"
-      description="Discover expert SEO tips, guides, and strategies from Aldin Glavas. Learn how to improve your website's search rankings with actionable insights."
+      description="Discover expert SEO tips, guides, and strategies from PulsarRank. Learn how to improve your website's search rankings with actionable insights."
     >
       {/* Hero Section */}
       <section className="bg-space-gradient py-16">
@@ -20,12 +20,12 @@ export default function BlogPage() {
           </h1>
           <p className="text-xl text-gray-300 mb-8">
             Learn SEO strategies, tips, and best practices to dominate search rankings. 
-            Written by an expert with 10 years of experience.
+            Written by SEO experts and powered by AI-driven insights.
           </p>
           <div className="flex items-center justify-center space-x-4 text-gray-400">
             <div className="flex items-center space-x-2">
               <User className="w-5 h-5" />
-              <span>By Aldin Glavas</span>
+              <span>By PulsarRank</span>
             </div>
             <div className="w-px h-4 bg-gray-600"></div>
             <div className="flex items-center space-x-2">

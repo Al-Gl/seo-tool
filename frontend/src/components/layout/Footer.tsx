@@ -52,7 +52,7 @@ export function Footer({ className = '' }: FooterProps) {
                 <Linkedin className="w-5 h-5" />
               </a>
               <a 
-                href="mailto:contact@seoanalyzer.com"
+                href="mailto:contact@pulsarrank.com"
                 className="text-gray-400 hover:text-accent-400 transition-colors duration-200"
                 aria-label="Send us an email"
               >
@@ -117,30 +117,28 @@ export function Footer({ className = '' }: FooterProps) {
 
           {/* Company Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Author</h3>
+            <h3 className="text-white font-semibold mb-4">Company</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link href="/about" className="text-gray-400 hover:text-white transition-colors duration-200">
-                  About Aldin Glavas
+                  About PulsarRank
                 </Link>
               </li>
               <li>
                 <a 
-                  href="mailto:aldin@pulsarrank.com" 
+                  href="mailto:contact@pulsarrank.com" 
                   className="text-gray-400 hover:text-white transition-colors duration-200"
                 >
-                  Contact
+                  Contact Us
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://linkedin.com/in/aldinglavas" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <Link 
+                  href="/pricing" 
                   className="text-gray-400 hover:text-white transition-colors duration-200"
                 >
-                  LinkedIn
-                </a>
+                  Pricing
+                </Link>
               </li>
             </ul>
           </div>
@@ -150,7 +148,7 @@ export function Footer({ className = '' }: FooterProps) {
         <div className="border-t border-space-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-sm text-gray-400 mb-4 md:mb-0">
-              © {currentYear} PulsarRank by Aldin Glavas. All rights reserved.
+              © {currentYear} PulsarRank. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm">
               <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200">
