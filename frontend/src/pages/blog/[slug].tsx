@@ -108,14 +108,15 @@ export default function BlogPostPage({ post }: BlogPostPageProps) {
                       About {post.author}
                     </h3>
                     <p className="text-gray-300 mb-4">
-                      SEO Expert with 10 years of experience working at agencies and for large in-house corporate teams. 
-                      Passionate about helping businesses improve their search rankings and online visibility.
+                      PulsarRank is an AI-powered SEO analysis platform that helps businesses identify and fix 
+                      website optimization issues with stellar accuracy. Our expert insights are backed by advanced 
+                      algorithms and proven SEO methodologies.
                     </p>
                     <Link 
                       href="/about"
                       className="inline-flex items-center text-accent-400 hover:text-accent-300 transition-colors font-medium"
                     >
-                      Read full bio
+                      Learn more about PulsarRank
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </Link>
                   </div>
