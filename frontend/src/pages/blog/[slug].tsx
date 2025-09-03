@@ -7,13 +7,17 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BlogPost, getAllBlogPosts, getBlogPostBySlug } from '@/data/blogPosts';
 import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
-import { TableOfContents } from '@/components/blog/TableOfContents';
 import { ReadingProgress } from '@/components/blog/ReadingProgress';
+import dynamic from 'next/dynamic';
 
 interface BlogPostPageProps {
   post: BlogPost;
 }
 
+const TableOfContents = dynamic(
+  () => import('@/components/blog/TableOfContents').then((mod) => mod.TableOfContents),
+  { ssr: false }
+);
 export default function BlogPostPage({ post }: BlogPostPageProps) {
   const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
