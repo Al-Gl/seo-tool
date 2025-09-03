@@ -9,8 +9,7 @@ import { BlogPost, getAllBlogPosts, getBlogPostBySlug } from '@/data/blogPosts';
 import { ReadingProgress } from '@/components/blog/ReadingProgress';
 import dynamic from 'next/dynamic';
 
-import dynamic from 'next/dynamic';
-
+// Dynamically import components that use browser-only APIs
 const BlogContentRenderer = dynamic(
   () => import('@/components/blog/BlogContentRenderer').then((mod) => mod.BlogContentRenderer),
   { ssr: false }
@@ -25,10 +24,6 @@ interface BlogPostPageProps {
   post: BlogPost;
 }
 
-const TableOfContents = dynamic(
-  () => import('@/components/blog/TableOfContents').then((mod) => mod.TableOfContents),
-  { ssr: false }
-);
 export default function BlogPostPage({ post }: BlogPostPageProps) {
   const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
