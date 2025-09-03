@@ -167,7 +167,7 @@ class AIAnalyzer {
    */
   async generateComprehensiveAnalysis(data) {
     const analysisPrompt = `
-Perform a comprehensive SEO analysis of this webpage. Provide detailed insights in JSON format with the following structure:
+Based EXCLUSIVELY on the 'Webpage Data' provided below, perform a comprehensive SEO analysis. Do not use any prior knowledge. Your entire analysis must be derived from the provided data. Provide detailed insights in JSON format with the following structure:
 
 {
   "technicalSEO": {
@@ -202,8 +202,6 @@ Perform a comprehensive SEO analysis of this webpage. Provide detailed insights 
     "recommendations": []
   }
 }
-
-Focus on actionable insights and specific recommendations.
 
 Webpage Data:
 ${JSON.stringify(data, null, 2)}
@@ -244,14 +242,14 @@ ${JSON.stringify(data, null, 2)}
    */
   async generateSummary(crawlData, analysis) {
     const summaryPrompt = `
-Based on the SEO analysis results, provide a concise executive summary (2-3 paragraphs) that:
+Based ONLY on the provided SEO analysis results, provide a concise executive summary (2-3 paragraphs) that:
 
-1. Highlights the overall SEO health of the webpage
-2. Identifies the top 3 most critical issues
-3. Mentions key strengths and opportunities
-4. Provides an overall recommendation priority
+1. Highlights the overall SEO health of the webpage based on the scores provided.
+2. Identifies the top 3 most critical issues found in the analysis data.
+3. Mentions key strengths and opportunities derived directly from the data.
+4. Provides an overall recommendation priority.
 
-Keep it business-focused and actionable for decision-makers.
+Keep it business-focused and actionable for decision-makers. Do not invent information not present in the analysis.
 
 URL: ${crawlData.url}
 Analysis Results: ${JSON.stringify(analysis, null, 2)}
@@ -280,21 +278,18 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    */
   async generateRecommendations(crawlData, analysis) {
     const recommendationsPrompt = `
-Based on the SEO analysis, provide 5-10 prioritized recommendations in JSON format:
+Based ONLY on the following SEO analysis results, provide 5-10 prioritized recommendations. Each recommendation must directly address an issue found in the data. Provide the response in JSON format:
 
 [
   {
     "priority": "high|medium|low",
     "category": "technical|content|ux|performance|accessibility",
-    "title": "Brief title",
-    "description": "Detailed description",
-    "impact": "Expected impact description",
-    "effort": "low|medium|high",
-    "timeframe": "immediate|short-term|long-term"
+    "title": "Brief title of the recommendation",
+    "description": "Detailed description of what to do",
+    "impact": "Expected impact of this specific fix",
+    "effort": "low|medium|high"
   }
 ]
-
-Focus on actionable items with clear business impact.
 
 Analysis Results: ${JSON.stringify(analysis, null, 2)}
 `;
@@ -324,8 +319,7 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
         title: 'Review Analysis Results',
         description: response,
         impact: 'Review detailed analysis for specific recommendations',
-        effort: 'low',
-        timeframe: 'immediate'
+        effort: 'low'
       }];
 
     } catch (error) {
@@ -340,6 +334,9 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    * @returns {Object} Structured data for analysis
    */
   prepareDataForAnalysis(crawlData) {
+    // Truncate the full text content to a reasonable length to avoid overly large prompts
+    const truncatedTextContent = crawlData.content?.content?.textContent.substring(0, 8000) || '';
+
     return {
       url: crawlData.url,
       title: crawlData.content.title,
@@ -351,7 +348,8 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
         paragraphCount: crawlData.content.content.paragraphs,
         headingStructure: crawlData.content.headings,
         imageCount: crawlData.content.images.length,
-        linkCounts: crawlData.content.content.links
+        linkCounts: crawlData.content.content.links,
+        textContentSample: truncatedTextContent + (crawlData.content?.content?.textContent.length > 8000 ? '...' : '')
       },
 
       // Technical SEO
@@ -420,13 +418,16 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
         accessibility: 0.1
       };
 
-      scores.overall = Math.round(
-        scores.technical * weights.technical +
-        scores.content * weights.content +
-        scores.performance * weights.performance +
-        scores.userExperience * weights.userExperience +
-        scores.accessibility * weights.accessibility
-      );
+      const validScores = Object.values(scores).filter(s => typeof s === 'number' && s >= 0 && s <= 100);
+      if (validScores.length > 1) {
+          scores.overall = Math.round(
+          scores.technical * weights.technical +
+          scores.content * weights.content +
+          scores.performance * weights.performance +
+          scores.userExperience * weights.userExperience +
+          scores.accessibility * weights.accessibility
+        );
+      }
 
     } catch (error) {
       console.error('Error calculating SEO scores:', error);
