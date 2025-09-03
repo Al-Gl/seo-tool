@@ -6,9 +6,20 @@ import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BlogPost, getAllBlogPosts, getBlogPostBySlug } from '@/data/blogPosts';
-import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
 import { ReadingProgress } from '@/components/blog/ReadingProgress';
 import dynamic from 'next/dynamic';
+
+import dynamic from 'next/dynamic';
+
+const BlogContentRenderer = dynamic(
+  () => import('@/components/blog/BlogContentRenderer').then((mod) => mod.BlogContentRenderer),
+  { ssr: false }
+);
+
+const TableOfContents = dynamic(
+  () => import('@/components/blog/TableOfContents').then((mod) => mod.TableOfContents),
+  { ssr: false }
+);
 
 interface BlogPostPageProps {
   post: BlogPost;
