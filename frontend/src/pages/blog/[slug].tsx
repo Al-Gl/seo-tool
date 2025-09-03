@@ -6,6 +6,9 @@ import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BlogPost, getAllBlogPosts, getBlogPostBySlug } from '@/data/blogPosts';
+import { BlogContentRenderer } from '@/components/blog/BlogContentRenderer';
+import { TableOfContents } from '@/components/blog/TableOfContents';
+import { ReadingProgress } from '@/components/blog/ReadingProgress';
 
 interface BlogPostPageProps {
   post: BlogPost;
@@ -23,10 +26,11 @@ export default function BlogPostPage({ post }: BlogPostPageProps) {
       title={post.metaTitle}
       description={post.metaDescription}
     >
+      <ReadingProgress />
       <article className="bg-space-900">
         {/* Hero Section */}
         <section className="bg-space-gradient py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
               <Link 
                 href="/blog"
@@ -86,17 +90,24 @@ export default function BlogPostPage({ post }: BlogPostPageProps) {
 
         {/* Content */}
         <section className="py-12 bg-space-900">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div 
-              className="prose prose-lg prose-invert prose-headings:text-white prose-p:text-gray-300 prose-a:text-accent-400 prose-a:no-underline hover:prose-a:text-accent-300 prose-strong:text-white prose-code:text-accent-400 prose-code:bg-space-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-space-800 prose-pre:border prose-pre:border-space-700 prose-ul:text-gray-300 prose-ol:text-gray-300 prose-li:text-gray-300 max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex gap-12">
+              {/* Main Content */}
+              <div className="flex-1 max-w-4xl">
+                <BlogContentRenderer content={post.content} />
+              </div>
+              
+              {/* Sidebar */}
+              <div className="hidden xl:block w-80">
+                <TableOfContents content={post.content} />
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Author Bio */}
         <section className="py-12 bg-space-800 border-t border-space-700">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <Card className="bg-space-700 border-space-600">
               <CardContent className="p-8">
                 <div className="flex items-start space-x-6">
@@ -128,7 +139,7 @@ export default function BlogPostPage({ post }: BlogPostPageProps) {
 
         {/* CTA Section */}
         <section className="py-16 bg-gradient-to-br from-accent-600 to-purple-600">
-          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-white mb-4">
               Ready to Optimize Your Website?
             </h2>

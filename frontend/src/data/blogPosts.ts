@@ -1989,8 +1989,14 @@ export const blogPosts: BlogPost[] = [
     content: `
       <p>Core Web Vitals have become a crucial component of Google's ranking algorithm and user experience assessment. These metrics, introduced as part of Google's Page Experience update, measure real-world user experience and directly impact your search rankings and user satisfaction.</p>
 
+      [infographic:core-web-vitals]
+
       <h2>What Are Core Web Vitals?</h2>
       <p>Core Web Vitals are a set of specific factors that Google considers important in a webpage's overall user experience. They are part of Google's Web Vitals initiative, which aims to provide unified guidance for quality signals that are essential to delivering a great user experience on the web.</p>
+
+      [callout:important title="Key Update 2025"]
+      Google has announced that Interaction to Next Paint (INP) will replace First Input Delay (FID) as a Core Web Vital metric starting March 2024, providing more comprehensive interactivity measurement.
+      [/callout]
 
       <h3>The Three Core Web Vitals Metrics</h3>
       <p>As of 2025, Google focuses on three primary Core Web Vitals metrics:</p>
@@ -1999,6 +2005,12 @@ export const blogPosts: BlogPost[] = [
         <li><strong>First Input Delay (FID):</strong> Measures interactivity (being replaced by Interaction to Next Paint)</li>
         <li><strong>Cumulative Layout Shift (CLS):</strong> Measures visual stability</li>
       </ul>
+
+      [stats title="Core Web Vitals Performance Thresholds" layout="grid"]
+      LCP:2.5 seconds:0:Good
+      FID:100 ms:0:Good  
+      CLS:0.1:0:Good
+      [/stats]
 
       <h3>Why Core Web Vitals Matter</h3>
       <ul>
@@ -3686,20 +3698,25 @@ function processLargeArrayAsync(array) {
 
       <h2>The Impact of Slow Loading Speeds</h2>
 
-      <h3>Critical Statistics</h3>
-      <ul>
-        <li><strong>53% of mobile users</strong> abandon sites that take longer than 3 seconds to load</li>
-        <li><strong>1-second delay</strong> in page response can result in a 7% reduction in conversions</li>
-        <li><strong>40% of users</strong> abandon a website that takes more than 3 seconds to load</li>
-        <li><strong>79% of shoppers</strong> who have trouble with site performance are less likely to buy from the same site again</li>
-      </ul>
+      [callout:warning title="The Cost of Slow Sites"]
+      Studies show that a 1-second delay in page response can result in a 7% reduction in conversions, while 53% of mobile users abandon sites that take longer than 3 seconds to load.
+      [/callout]
 
-      <h3>Business Impact</h3>
+      [stats title="Page Speed Impact Statistics" layout="list"]
+      Mobile Abandonment Rate:53%:0:sites taking >3 seconds
+      Conversion Loss:7%:-7:per 1-second delay
+      User Abandonment:40%:0:sites taking >3 seconds  
+      Repeat Purchase Impact:79%:-79:less likely after bad experience
+      [/stats]
+
+      <h3>Business Impact Case Studies</h3>
       <ul>
         <li><strong>Amazon:</strong> Every 100ms of latency costs them 1% in sales</li>
         <li><strong>Walmart:</strong> For every 1 second improvement in page load time, conversions increased by 2%</li>
         <li><strong>Pinterest:</strong> Reduced load times by 40% and increased search engine traffic and sign-ups by 15%</li>
       </ul>
+
+      [infographic:page-speed]
 
       <h2>Understanding Core Web Vitals</h2>
 
@@ -4129,17 +4146,20 @@ function processLargeArrayAsync(array) {
       </ul>
 
       <h3>Meta Robots Tag Examples</h3>
-      <pre><code>&lt;!-- Allow indexing and following links --&gt;
-&lt;meta name="robots" content="index, follow"&gt;
+      
+      [code lang="html" title="Meta Robots Tag Options"]
+<!-- Allow indexing and following links -->
+<meta name="robots" content="index, follow">
 
-&lt;!-- Prevent indexing but allow following links --&gt;
-&lt;meta name="robots" content="noindex, follow"&gt;
+<!-- Prevent indexing but allow following links -->
+<meta name="robots" content="noindex, follow">
 
-&lt;!-- Allow indexing but prevent following links --&gt;
-&lt;meta name="robots" content="index, nofollow"&gt;
+<!-- Allow indexing but prevent following links -->
+<meta name="robots" content="index, nofollow">
 
-&lt;!-- Prevent both indexing and following links --&gt;
-&lt;meta name="robots" content="noindex, nofollow"&gt;</code></pre>
+<!-- Prevent both indexing and following links -->
+<meta name="robots" content="noindex, nofollow">
+      [/code]
 
       <h2>Website Architecture and Structure</h2>
 
