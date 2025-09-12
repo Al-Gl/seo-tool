@@ -24,15 +24,15 @@ import { ScoreCircle } from '@/components/charts/ScoreCircle';
 import { CategoryChart } from '@/components/charts/CategoryChart';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { Tabs, TabItem, TabPanel } from '@/components/ui/Tabs';
-import { 
-  AnalysisResponse, 
+import {
+  AnalysisResponse,
   SEOCategory,
   ScoreBreakdown
 } from '@/types';
-import { 
-  getSeverityColor, 
-  getPriorityColor, 
-  formatRelativeTime, 
+import {
+  getSeverityColor,
+  getPriorityColor,
+  formatRelativeTime,
   formatNumber,
   extractDomain,
   truncateText,
@@ -54,9 +54,7 @@ const categoryFilterOptions: SelectOption[] = [
   { value: 'technical', label: 'Technical' },
   { value: 'content', label: 'Content' },
   { value: 'performance', label: 'Performance' },
-  { value: 'accessibility', label: 'Accessibility' },
-  { value: 'mobile', label: 'Mobile' },
-  { value: 'ux', label: 'User Experience' }
+  { value: 'accessibility', label: 'Accessibility' }
 ];
 
 export function ResultsDashboard({
@@ -70,32 +68,36 @@ export function ResultsDashboard({
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
   const [activeTab, setActiveTab] = useState('issues');
 
-  // Process the analysis data to generate issues and scores
-  const processedData = useMemo(() => processAnalysisData(results), [results]);
+  // Safely process the analysis data to generate issues and scores
+  const processedData = useMemo(() => {
+    if (!results) return { issues: [], categoryScores: {}, issueCounts: { critical: 0, warning: 0, suggestion: 0 } };
+    return processAnalysisData(results);
+  }, [results]);
   const { issues, categoryScores, issueCounts } = processedData;
 
-  // Extract data safely from the nested results object
+  // Safely extract data from the nested results object with fallbacks
   const seoAnalysis = results.seoAnalysis || {};
   const crawlData = results.crawlData || {};
   const content = crawlData.content || {};
   const performance = crawlData.performance || {};
+  const headings = content.headings || {};
   
   const recommendations = useMemo(() => seoAnalysis.recommendations || [], [seoAnalysis.recommendations]);
 
   // Filter recommendations
   const filteredRecommendations = recommendations.filter(rec => {
+    if (!rec) return false;
     const categoryMatch = categoryFilter === 'all' || rec.category === categoryFilter;
     return categoryMatch;
   });
 
   const displayedRecommendations = showAllRecommendations ? filteredRecommendations : filteredRecommendations.slice(0, 5);
 
-  // Create score breakdown for the chart
   const scoreBreakdown: ScoreBreakdown[] = useMemo(() => [
-    { category: 'Technical', score: categoryScores.technicalScore, maxScore: 100, issues: issues.filter(i => i.category === 'technical').length, color: '#3b82f6' },
-    { category: 'Content', score: categoryScores.contentScore, maxScore: 100, issues: issues.filter(i => i.category === 'content').length, color: '#10b981' },
-    { category: 'Performance', score: categoryScores.performanceScore, maxScore: 100, issues: issues.filter(i => i.category === 'performance').length, color: '#f59e0b' },
-    { category: 'Accessibility', score: categoryScores.accessibilityScore, maxScore: 100, issues: issues.filter(i => i.category === 'accessibility').length, color: '#ef4444' },
+    { category: 'Technical', score: categoryScores.technicalScore || 0, maxScore: 100, issues: issues.filter(i => i.category === 'technical').length, color: '#3b82f6' },
+    { category: 'Content', score: categoryScores.contentScore || 0, maxScore: 100, issues: issues.filter(i => i.category === 'content').length, color: '#10b981' },
+    { category: 'Performance', score: categoryScores.performanceScore || 0, maxScore: 100, issues: issues.filter(i => i.category === 'performance').length, color: '#f59e0b' },
+    { category: 'Accessibility', score: categoryScores.accessibilityScore || 0, maxScore: 100, issues: issues.filter(i => i.category === 'accessibility').length, color: '#ef4444' },
   ], [categoryScores, issues]);
 
   const handleDownloadPdf = async () => {
@@ -114,7 +116,6 @@ export function ResultsDashboard({
     }
   };
 
-  // Create tabs for the detailed breakdown section
   const detailTabs: TabItem[] = [
     {
       id: 'issues',
@@ -123,45 +124,12 @@ export function ResultsDashboard({
       content: (
         <TabPanel>
           <div className="space-y-6">
-            {/* Programmatically Generated Issues */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Identified Issues</h3>
-              {issues.length > 0 ? (
-                <div className="space-y-4">
-                  {issues.map((issue) => (
-                    <div key={issue.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-medium text-gray-900">{issue.title}</h4>
-                            <span className={`
-                              inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                              ${getSeverityColor(issue.severity)}
-                            `}>
-                              {capitalize(issue.severity)}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600">{issue.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900">No Issues Found</h3>
-                  <p className="text-gray-500">Great! No critical issues were detected in your analysis.</p>
-                </div>
-              )}
-            </div>
-
             {/* AI-Generated Recommendations */}
             {recommendations.length > 0 && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Recommendations</h3>
                 <div className="space-y-4">
-                  {displayedRecommendations.map((recommendation, index) => (
+                  {displayedRecommendations.map((recommendation, index) => recommendation && (
                     <div key={index} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
@@ -223,12 +191,13 @@ export function ResultsDashboard({
                   <CardTitle className="text-sm">H1 Tags</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {content.headings?.h1 && content.headings.h1.length > 0 ? (
+                  {headings.h1 && headings.h1.length > 0 ? (
                     <div className="space-y-2">
-                      {content.headings.h1.map((h1: string, index: number) => (
-                        <p key={index} className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{h1}</p>
+                      {/* --- THIS IS THE FIX --- */}
+                      {headings.h1.map((h1, index) => (
+                        <p key={`h1-${index}`} className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{h1.text}</p>
                       ))}
-                      <p className="text-xs text-gray-500">{content.headings.h1.length} H1 tag(s) found</p>
+                      <p className="text-xs text-gray-500">{headings.h1.length} H1 tag(s) found</p>
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500">No H1 tags found</p>
@@ -259,36 +228,7 @@ export function ResultsDashboard({
                 </div>
               </CardContent>
             </Card>
-
-            {performance.metrics?.lcp && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Largest Contentful Paint</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {(performance.metrics.lcp / 1000).toFixed(1)}s
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {performance.metrics?.cls && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Cumulative Layout Shift</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-gray-900">
-                      {performance.metrics.cls.toFixed(3)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Add more performance cards here if data is available */}
           </div>
         </TabPanel>
       )
@@ -300,7 +240,7 @@ export function ResultsDashboard({
       content: (
         <TabPanel>
           <div className="space-y-4">
-            {content.schemaMarkup ? (
+            {content.schemaMarkup && content.schemaMarkup.length > 0 ? (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Schema Markup Found</h3>
                 <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto">
@@ -311,13 +251,6 @@ export function ResultsDashboard({
               <div className="text-center py-8">
                 <Code className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Schema Markup Found</h3>
-                <p className="text-gray-500 mb-4">
-                  Schema markup helps search engines understand your content better.
-                </p>
-                <Button variant="secondary" size="sm">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Learn About Schema
-                </Button>
               </div>
             )}
           </div>
@@ -329,48 +262,24 @@ export function ResultsDashboard({
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">SEO Analysis Results</h1>
-          <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-            <Globe className="w-4 h-4" />
-            <span>{extractDomain(analysisUrl)}</span>
-            <span>•</span>
-            <Clock className="w-4 h-4" />
-            <span>{formatRelativeTime(results.completedAt || results.updatedAt)}</span>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onShareResults}
-            className="flex items-center"
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-          <Button
-            onClick={handleDownloadPdf}
-            disabled={isGeneratingPdf}
-            size="sm"
-            className="flex items-center"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
-          </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">SEO Analysis Results</h1>
+        <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
+          <Globe className="w-4 h-4" />
+          <span>{extractDomain(analysisUrl)}</span>
+          <span>•</span>
+          <Clock className="w-4 h-4" />
+          <span>{formatRelativeTime(results.completedAt || results.updatedAt)}</span>
         </div>
       </div>
 
-      {/* Section A: Top-Level Overview (4-Card Grid) */}
+      {/* Overview Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Overall Score Card */}
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-6">
             <div className="flex items-center space-x-2">
               <ScoreCircle 
-                score={categoryScores.overallScore} 
+                score={categoryScores.overallScore || 0} 
                 size="xl"
                 showLabel={true}
               />
@@ -381,8 +290,6 @@ export function ResultsDashboard({
             <p className="text-sm text-gray-500 mt-2">Overall Score</p>
           </CardContent>
         </Card>
-
-        {/* Issues Found Card */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -392,84 +299,47 @@ export function ResultsDashboard({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Critical</span>
-                <span className="text-sm font-semibold text-red-600">
-                  {issueCounts.critical}
-                </span>
+                <span className="text-sm font-semibold text-red-600">{issueCounts.critical}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Warning</span>
-                <span className="text-sm font-semibold text-orange-600">
-                  {issueCounts.warning}
-                </span>
+                <span className="text-sm font-semibold text-orange-600">{issueCounts.warning}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Suggestion</span>
-                <span className="text-sm font-semibold text-blue-600">
-                  {issueCounts.suggestion}
-                </span>
+                <span className="text-sm font-semibold text-blue-600">{issueCounts.suggestion}</span>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Performance Card */}
-        <Card>
+        {/* Simplified Performance & Crawl Cards */}
+         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
+             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-900">Performance</h3>
               <Zap className="w-5 h-5 text-yellow-500" />
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+             <div className="space-y-3">
+               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Load Time</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {performance.loadTime ? (performance.loadTime / 1000).toFixed(1) + 's' : 'N/A'}
                 </span>
               </div>
-              {performance.metrics?.lcp && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">LCP</span>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {(performance.metrics.lcp / 1000).toFixed(1)}s
-                  </span>
-                </div>
-              )}
-              {performance.metrics?.cls && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">CLS</span>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {performance.metrics.cls.toFixed(3)}
-                  </span>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
-
-        {/* Crawl Data Card */}
-        <Card>
+         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-900">Crawl Data</h3>
               <Eye className="w-5 h-5 text-green-500" />
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+             <div className="space-y-3">
+               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Word Count</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {formatNumber(content.wordCount || 0)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Links</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {content.links?.total || 0}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Images</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {content.images?.length || 0}
+                  {formatNumber(content.content?.wordCount || 0)}
                 </span>
               </div>
             </div>
@@ -477,7 +347,7 @@ export function ResultsDashboard({
         </Card>
       </div>
 
-      {/* Section B: AI Analysis Summary (Visually Distinct) */}
+      {/* AI Summary */}
       <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
         <CardHeader>
           <CardTitle className="flex items-center text-purple-900">
@@ -489,7 +359,7 @@ export function ResultsDashboard({
         </CardHeader>
         <CardContent>
           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-base">
-            {seoAnalysis.summary || 'AI analysis is processing your website data to provide comprehensive insights and recommendations.'}
+            {seoAnalysis.summary || 'AI analysis summary is being generated.'}
           </p>
         </CardContent>
       </Card>
@@ -507,15 +377,15 @@ export function ResultsDashboard({
         </CardContent>
       </Card>
 
-      {/* Section C: Detailed Breakdown (Tabbed Interface) */}
+      {/* Detailed Breakdown Tabs */}
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 sm:p-2">
           <Tabs
             tabs={detailTabs}
             defaultTab="issues"
             className="w-full"
-            tabsClassName="px-6 pt-6"
-            contentClassName="px-6 pb-6"
+            tabsClassName="px-2 sm:px-6 pt-2 sm:pt-6"
+            contentClassName="px-4 py-6 sm:px-6 sm:pb-6"
             onChange={setActiveTab}
           />
         </CardContent>
