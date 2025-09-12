@@ -9,16 +9,43 @@ export interface AnalysisResponse {
   id: string;
   url: string;
   status: AnalysisStatus;
-  analysisType: AnalysisType;
+  analysisType?: AnalysisType;
   customPrompt?: string;
   progress?: number;
   estimatedTimeRemaining?: number;
   results?: AnalysisResults;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
+  startedAt?: string;
+  // Backend response structure
+  seoAnalysis?: {
+    scores?: { overall?: number };
+    summary?: string;
+    recommendations?: any[];
+    comprehensiveAnalysis?: any;
+  };
+  crawlData?: {
+    content?: {
+      title?: string;
+      description?: string;
+      headings?: { h1?: string[] };
+      images?: any[];
+      wordCount?: number;
+      links?: { total?: number };
+      schemaMarkup?: any;
+    };
+    performance?: {
+      loadTime?: number;
+      metrics?: {
+        lcp?: number;
+        cls?: number;
+      };
+    };
+  };
 }
 
-export type AnalysisStatus = 'pending' | 'crawling' | 'analyzing' | 'completed' | 'failed' | 'cancelled';
+export type AnalysisStatus = 'pending' | 'processing' | 'crawling' | 'analyzing' | 'completed' | 'failed' | 'cancelled';
 
 export type AnalysisType = 
   | 'complete-seo-audit'
