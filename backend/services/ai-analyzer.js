@@ -166,58 +166,78 @@ class AIAnalyzer {
    * @returns {Promise<Object>} Comprehensive analysis
    */
   async generateComprehensiveAnalysis(data) {
+    const language = data.language?.detected || 'en';
+    const culturalContext = data.language?.culturalContext || {};
+
     const analysisPrompt = `
-Based EXCLUSIVELY on the 'Webpage Data' provided below, provide CONCRETE, ACTIONABLE SEO guidance. For each recommendation, provide specific implementation steps, exact code snippets where applicable, and measurable targets. Focus on WHAT TO DO rather than what's wrong. Provide detailed guidance in JSON format:
+Based EXCLUSIVELY on the 'Webpage Data' provided below, provide BEGINNER-FRIENDLY, ACTIONABLE SEO guidance in ${language === 'en' ? 'English' : this.getLanguageName(language)}.
+
+**LANGUAGE CONTEXT**: The website appears to be in ${this.getLanguageName(language)}. ALL recommendations, code examples, and suggested content MUST be provided in ${this.getLanguageName(language)} where applicable.
+
+**TARGET AUDIENCE**: Assume the reader is a beginner who needs clear explanations. For each recommendation, explain WHY it matters for SEO.
+
+Structure your response as a JSON with beginner-friendly categories:
 
 {
-  "technicalSEO": {
-    "score": 0-100,
+  "quickWins": {
+    "description": "Easy tasks anyone can do in 30 minutes that will improve SEO",
     "actions": [
       {
-        "task": "Specific action to take",
-        "implementation": "Exact steps or code to implement",
-        "priority": "high|medium|low",
-        "timeframe": "immediate|1-week|1-month",
-        "impact": "Expected SEO improvement"
+        "task": "Simple description of what to do",
+        "whyItMatters": "Clear explanation of SEO benefit in simple terms",
+        "howToDo": "Step-by-step instructions for beginners",
+        "difficulty": "beginner",
+        "timeNeeded": "15-30 minutes",
+        "impact": "high|medium|low"
       }
     ]
   },
-  "contentOptimization": {
-    "score": 0-100,
+  "importantFixes": {
+    "description": "Essential improvements that need attention within 1-2 weeks",
     "actions": [
       {
-        "task": "Specific content change needed",
-        "implementation": "Exact text/structure to modify",
-        "targetMetric": "Specific goal (e.g., 'increase word count to 1500 words')",
-        "priority": "high|medium|low"
+        "task": "What needs to be fixed",
+        "whyItMatters": "Why this is important for SEO and user experience",
+        "howToDo": "Detailed implementation steps",
+        "difficulty": "intermediate",
+        "timeNeeded": "1-4 hours",
+        "impact": "high|medium|low",
+        "codeExample": "Exact code to implement (if applicable)"
       }
     ]
   },
-  "performanceImprovements": {
-    "score": 0-100,
+  "advancedOptimizations": {
+    "description": "Long-term improvements for advanced users or developers",
     "actions": [
       {
-        "task": "Performance optimization needed",
-        "implementation": "Technical steps to implement",
-        "expectedGain": "Specific improvement (e.g., 'reduce load time by 2s')",
-        "priority": "high|medium|low"
+        "task": "Advanced optimization task",
+        "whyItMatters": "Technical SEO benefit explanation",
+        "howToDo": "Technical implementation steps",
+        "difficulty": "advanced",
+        "timeNeeded": "4+ hours or ongoing",
+        "impact": "high|medium|low",
+        "technicalDetails": "Developer-specific information"
       }
     ]
   },
-  "accessibilityFixes": {
-    "score": 0-100,
-    "actions": [
+  "languageSpecific": {
+    "detectedLanguage": "${language}",
+    "recommendations": [
       {
-        "task": "Accessibility improvement needed",
-        "implementation": "Exact HTML/attribute changes",
-        "standard": "WCAG guideline addressed",
-        "priority": "high|medium|low"
+        "task": "Language/culture-specific SEO advice",
+        "localContext": "Why this matters for ${this.getLanguageName(language)} users",
+        "implementation": "Specific steps considering cultural context"
       }
     ]
   }
 }
 
-IMPORTANT: Each "implementation" field must contain specific, actionable instructions that a developer can immediately execute. Include exact HTML tags, CSS properties, meta tag content, or configuration changes where relevant.
+**CRITICAL REQUIREMENTS:**
+1. If title/meta description exists in ${this.getLanguageName(language)}, provide improved versions in the SAME language
+2. Use culturally appropriate examples and references for ${this.getLanguageName(language)} users
+3. Consider local search engines: ${culturalContext.searchEngines?.join(', ') || 'Google'}
+4. Apply language-specific character limits: Title ${culturalContext.titleLength?.max || 60} chars, Meta Description ${culturalContext.metaDescLength?.max || 160} chars
+5. Explain technical terms in simple language that beginners can understand
 
 Webpage Data:
 ${JSON.stringify(data, null, 2)}
@@ -257,28 +277,39 @@ ${JSON.stringify(data, null, 2)}
    * @returns {Promise<string>} Executive summary
    */
   async generateSummary(crawlData, analysis) {
+    const language = crawlData.language?.detected || 'en';
+    const languageName = this.getLanguageName(language);
+
     const summaryPrompt = `
-Based ONLY on the provided SEO analysis results, create a CONCRETE ACTION PLAN executive summary that:
+Based ONLY on the provided SEO analysis results, create a BEGINNER-FRIENDLY executive summary in ${languageName}.
 
-1. Lists the top 3 IMMEDIATE ACTIONS to take (with specific implementation details)
-2. Provides the next 3 HIGH-IMPACT actions for the following week
-3. Specifies exact measurable outcomes expected from these changes
-4. Gives a clear implementation timeline with priorities
+**TARGET AUDIENCE**: Someone new to SEO who needs clear, simple explanations and prioritized action steps.
 
-Format as an actionable business plan, not an analysis report. Focus on WHAT TO DO and WHEN TO DO IT.
+**LANGUAGE REQUIREMENT**: Write in ${languageName} if the website content is in ${languageName}, otherwise use English with ${languageName}-appropriate examples.
 
-Example format:
-"IMMEDIATE ACTIONS (This Week):
-1. [Specific action with exact implementation steps]
-2. [Specific action with exact implementation steps]
-3. [Specific action with exact implementation steps]
+Create a summary with this exact structure:
 
-HIGH-IMPACT ACTIONS (Next 2 Weeks):
-1. [Specific action with expected outcome]
-2. [Specific action with expected outcome]
-3. [Specific action with expected outcome]
+**🎯 YOUR SEO SITUATION**
+[1-2 sentences explaining current SEO health in simple terms]
 
-EXPECTED RESULTS: [Specific measurable improvements]"
+**✅ QUICK WINS (Start Today - 30 minutes each)**
+1. [Simple task anyone can do] → Why: [Simple explanation of benefit]
+2. [Simple task anyone can do] → Why: [Simple explanation of benefit]
+3. [Simple task anyone can do] → Why: [Simple explanation of benefit]
+
+**⚠️ IMPORTANT FIXES (This Week - 1-2 hours each)**
+1. [Essential fix needed] → Impact: [How this helps your website]
+2. [Essential fix needed] → Impact: [How this helps your website]
+3. [Essential fix needed] → Impact: [How this helps your website]
+
+**🔧 BIGGER IMPROVEMENTS (Next Month)**
+1. [Long-term optimization] → Benefit: [Why this matters long-term]
+2. [Long-term optimization] → Benefit: [Why this matters long-term]
+
+**📊 EXPECTED RESULTS**
+If you complete the Quick Wins and Important Fixes, you should see: [Specific, realistic improvements]
+
+**IMPORTANT**: Use simple language, avoid technical jargon, and explain WHY each action helps SEO.
 
 URL: ${crawlData.url}
 Analysis Results: ${JSON.stringify(analysis, null, 2)}
@@ -306,28 +337,47 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    * @returns {Promise<Array>} Prioritized recommendations
    */
   async generateRecommendations(crawlData, analysis) {
+    const language = crawlData.language?.detected || 'en';
+    const languageName = this.getLanguageName(language);
+
     const recommendationsPrompt = `
-Based ONLY on the following SEO analysis results, provide 5-10 CONCRETE, IMPLEMENTABLE recommendations. Each recommendation must include step-by-step instructions that a developer or content manager can immediately execute. Provide the response in JSON format:
+Based ONLY on the following SEO analysis results, provide 5-10 BEGINNER-FRIENDLY recommendations in ${languageName}.
+
+**TARGET AUDIENCE**: Beginners who need clear explanations and step-by-step guidance.
+
+**LANGUAGE REQUIREMENT**: Provide all text examples, code snippets, and explanations in ${languageName} where applicable.
+
+Structure each recommendation for different skill levels. Provide response in JSON format:
 
 [
   {
+    "difficulty": "beginner|intermediate|advanced",
     "priority": "high|medium|low",
     "category": "technical|content|performance|accessibility",
-    "title": "Specific action to implement",
-    "description": "STEP-BY-STEP implementation instructions with exact code, text, or configurations",
-    "implementation": {
-      "steps": ["Step 1: Exact action", "Step 2: Exact action", "Step 3: Exact action"],
-      "code": "Exact HTML/CSS/JS code to add or modify (if applicable)",
-      "location": "Where exactly to make the change"
+    "title": "Clear, simple description of what to do",
+    "whyItMatters": "Simple explanation of why this helps SEO (for beginners)",
+    "beginnerGuide": {
+      "whatToDo": "Step-by-step instructions anyone can follow",
+      "whereToFind": "Exactly where to make changes (e.g., 'In your website's admin panel')",
+      "timeNeeded": "Realistic time estimate",
+      "helpfulTips": "Additional guidance to avoid common mistakes"
     },
-    "expectedOutcome": "Specific, measurable result expected",
-    "timeframe": "immediate|1-day|1-week|1-month",
-    "effort": "low|medium|high",
-    "tools": ["Specific tools or resources needed"]
+    "technicalDetails": {
+      "code": "Exact HTML/CSS/JS code in ${languageName} (if applicable)",
+      "implementation": "Technical steps for developers",
+      "testingSteps": "How to verify the change worked"
+    },
+    "expectedOutcome": "Specific, measurable improvement they'll see",
+    "impact": "high|medium|low",
+    "effort": "low|medium|high"
   }
 ]
 
-IMPORTANT: The "description" and "implementation.steps" must be so detailed that someone can execute them without additional research. Include exact values, specific locations, and concrete examples.
+**CRITICAL REQUIREMENTS:**
+1. All content examples (title tags, meta descriptions, etc.) must be in ${languageName}
+2. Use beginner-friendly language - explain technical terms
+3. Include specific, realistic expectations for results
+4. Provide both beginner and technical guidance for each recommendation
 
 Analysis Results: ${JSON.stringify(analysis, null, 2)}
 `;
@@ -375,11 +425,22 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
     // Truncate the full text content to a reasonable length to avoid overly large prompts
     const truncatedTextContent = crawlData.content?.content?.textContent.substring(0, 8000) || '';
 
+    // Detect language from various sources
+    const detectedLanguage = this.detectWebsiteLanguage(crawlData);
+
     return {
       url: crawlData.url,
       title: crawlData.content.title,
       description: crawlData.content.description,
-      
+
+      // Language context for AI analysis
+      language: {
+        detected: detectedLanguage.language,
+        confidence: detectedLanguage.confidence,
+        sources: detectedLanguage.sources,
+        culturalContext: this.getCulturalSEOContext(detectedLanguage.language)
+      },
+
       // Content metrics
       content: {
         wordCount: crawlData.content.content.wordCount,
@@ -392,7 +453,7 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
 
       // Technical SEO
       technical: crawlData.content.technical,
-      
+
       // Performance data
       performance: {
         loadTime: crawlData.loadTime,
@@ -411,6 +472,134 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
         schemaMarkup: crawlData.content.schemaMarkup.length
       }
     };
+  }
+
+  /**
+   * Detect website language from multiple sources
+   * @param {Object} crawlData - Raw crawl data
+   * @returns {Object} Language detection result
+   */
+  detectWebsiteLanguage(crawlData) {
+    const sources = [];
+    let detectedLang = 'en'; // Default to English
+    let confidence = 0.3; // Low confidence default
+
+    // Check HTML lang attribute
+    if (crawlData.content?.technical?.lang) {
+      const htmlLang = crawlData.content.technical.lang.toLowerCase();
+      if (htmlLang && htmlLang !== 'en') {
+        detectedLang = htmlLang.split('-')[0]; // Get language code without region
+        confidence = 0.9;
+        sources.push('html-lang-attribute');
+      }
+    }
+
+    // Analyze content language patterns
+    const textContent = crawlData.content?.content?.textContent || '';
+    const title = crawlData.content?.title || '';
+    const description = crawlData.content?.description || '';
+
+    const fullText = `${title} ${description} ${textContent}`.toLowerCase();
+
+    // Simple language detection based on common words
+    const languagePatterns = {
+      'da': ['og', 'til', 'med', 'på', 'der', 'det', 'som', 'ikke', 'af', 'være'],
+      'de': ['und', 'der', 'die', 'das', 'mit', 'auf', 'für', 'nicht', 'ist', 'werden'],
+      'fr': ['le', 'de', 'et', 'à', 'un', 'il', 'être', 'et', 'en', 'avoir'],
+      'es': ['el', 'de', 'que', 'y', 'a', 'en', 'un', 'ser', 'se', 'no'],
+      'it': ['il', 'di', 'che', 'e', 'la', 'per', 'un', 'in', 'con', 'non'],
+      'nl': ['de', 'het', 'van', 'en', 'in', 'op', 'voor', 'met', 'als', 'zijn'],
+      'sv': ['och', 'att', 'det', 'på', 'av', 'för', 'till', 'med', 'om', 'så'],
+      'no': ['og', 'at', 'det', 'på', 'av', 'for', 'til', 'med', 'om', 'så']
+    };
+
+    let highestScore = 0;
+    let contentDetectedLang = 'en';
+
+    for (const [lang, patterns] of Object.entries(languagePatterns)) {
+      const matches = patterns.filter(pattern => fullText.includes(` ${pattern} `)).length;
+      const score = matches / patterns.length;
+
+      if (score > highestScore && score > 0.3) {
+        highestScore = score;
+        contentDetectedLang = lang;
+      }
+    }
+
+    // If content analysis suggests different language and confidence is higher
+    if (highestScore > 0.5 && contentDetectedLang !== detectedLang) {
+      detectedLang = contentDetectedLang;
+      confidence = Math.min(0.8, highestScore);
+      sources.push('content-analysis');
+    }
+
+    return {
+      language: detectedLang,
+      confidence: confidence,
+      sources: sources.length > 0 ? sources : ['default-english']
+    };
+  }
+
+  /**
+   * Get cultural SEO context for a language
+   * @param {string} language - Language code
+   * @returns {Object} Cultural context
+   */
+  getCulturalSEOContext(language) {
+    const contexts = {
+      'da': {
+        titleLength: { min: 30, max: 55, unit: 'characters' },
+        metaDescLength: { min: 120, max: 155, unit: 'characters' },
+        searchEngines: ['google.dk', 'bing.com'],
+        culturalNotes: 'Danish users prefer direct, informative content. Local business information is highly valued.'
+      },
+      'de': {
+        titleLength: { min: 30, max: 60, unit: 'characters' },
+        metaDescLength: { min: 120, max: 160, unit: 'characters' },
+        searchEngines: ['google.de', 'bing.de'],
+        culturalNotes: 'German users appreciate detailed, authoritative content. Technical specifications are important.'
+      },
+      'fr': {
+        titleLength: { min: 30, max: 60, unit: 'characters' },
+        metaDescLength: { min: 120, max: 160, unit: 'characters' },
+        searchEngines: ['google.fr', 'bing.fr'],
+        culturalNotes: 'French users value elegant, well-structured content. Cultural references should be localized.'
+      },
+      'es': {
+        titleLength: { min: 30, max: 60, unit: 'characters' },
+        metaDescLength: { min: 120, max: 160, unit: 'characters' },
+        searchEngines: ['google.es', 'google.com.mx', 'google.com.ar'],
+        culturalNotes: 'Spanish content varies by region. Consider local dialects and cultural preferences.'
+      }
+    };
+
+    return contexts[language] || {
+      titleLength: { min: 30, max: 60, unit: 'characters' },
+      metaDescLength: { min: 120, max: 160, unit: 'characters' },
+      searchEngines: ['google.com'],
+      culturalNotes: 'Standard international SEO practices apply.'
+    };
+  }
+
+  /**
+   * Get human-readable language name from language code
+   * @param {string} languageCode - Language code (e.g., 'da', 'en')
+   * @returns {string} Language name
+   */
+  getLanguageName(languageCode) {
+    const languages = {
+      'en': 'English',
+      'da': 'Danish',
+      'de': 'German',
+      'fr': 'French',
+      'es': 'Spanish',
+      'it': 'Italian',
+      'nl': 'Dutch',
+      'sv': 'Swedish',
+      'no': 'Norwegian'
+    };
+
+    return languages[languageCode] || 'English';
   }
 
   /**

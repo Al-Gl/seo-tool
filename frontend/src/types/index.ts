@@ -22,8 +22,8 @@ export interface AnalysisResponse {
   seoAnalysis?: {
     scores?: { overall?: number };
     summary?: string;
-    recommendations?: any[];
-    comprehensiveAnalysis?: any;
+    recommendations?: BeginnerRecommendation[];
+    comprehensiveAnalysis?: BeginnerAnalysisResult;
   };
   crawlData?: {
     content?: {
@@ -42,6 +42,96 @@ export interface AnalysisResponse {
         cls?: number;
       };
     };
+    language?: LanguageContext;
+  };
+}
+
+// New Beginner-Friendly Analysis Types
+export interface BeginnerAnalysisResult {
+  quickWins: {
+    description: string;
+    actions: QuickWinAction[];
+  };
+  importantFixes: {
+    description: string;
+    actions: ImportantFixAction[];
+  };
+  advancedOptimizations: {
+    description: string;
+    actions: AdvancedAction[];
+  };
+  languageSpecific: {
+    detectedLanguage: string;
+    recommendations: LanguageSpecificAction[];
+  };
+}
+
+export interface QuickWinAction {
+  task: string;
+  whyItMatters: string;
+  howToDo: string;
+  difficulty: 'beginner';
+  timeNeeded: string;
+  impact: 'high' | 'medium' | 'low';
+}
+
+export interface ImportantFixAction {
+  task: string;
+  whyItMatters: string;
+  howToDo: string;
+  difficulty: 'intermediate';
+  timeNeeded: string;
+  impact: 'high' | 'medium' | 'low';
+  codeExample?: string;
+}
+
+export interface AdvancedAction {
+  task: string;
+  whyItMatters: string;
+  howToDo: string;
+  difficulty: 'advanced';
+  timeNeeded: string;
+  impact: 'high' | 'medium' | 'low';
+  technicalDetails: string;
+}
+
+export interface LanguageSpecificAction {
+  task: string;
+  localContext: string;
+  implementation: string;
+}
+
+export interface BeginnerRecommendation {
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  priority: 'high' | 'medium' | 'low';
+  category: SEOCategory;
+  title: string;
+  whyItMatters: string;
+  beginnerGuide: {
+    whatToDo: string;
+    whereToFind: string;
+    timeNeeded: string;
+    helpfulTips: string;
+  };
+  technicalDetails: {
+    code?: string;
+    implementation: string;
+    testingSteps: string;
+  };
+  expectedOutcome: string;
+  impact: 'high' | 'medium' | 'low';
+  effort: 'low' | 'medium' | 'high';
+}
+
+export interface LanguageContext {
+  detected: string;
+  confidence: number;
+  sources: string[];
+  culturalContext: {
+    titleLength: { min: number; max: number; unit: string };
+    metaDescLength: { min: number; max: number; unit: string };
+    searchEngines: string[];
+    culturalNotes: string;
   };
 }
 

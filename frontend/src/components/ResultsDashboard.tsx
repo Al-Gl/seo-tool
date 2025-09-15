@@ -27,7 +27,12 @@ import { Tabs, TabItem, TabPanel } from '@/components/ui/Tabs';
 import {
   AnalysisResponse,
   SEOCategory,
-  ScoreBreakdown
+  ScoreBreakdown,
+  BeginnerAnalysisResult,
+  BeginnerRecommendation,
+  QuickWinAction,
+  ImportantFixAction,
+  AdvancedAction
 } from '@/types';
 import {
   getSeverityColor,
@@ -116,10 +121,123 @@ export function ResultsDashboard({
     }
   };
 
+  // Get beginner-friendly analysis if available
+  const beginnerAnalysis = seoAnalysis.comprehensiveAnalysis as BeginnerAnalysisResult;
+  const beginnerRecommendations = seoAnalysis.recommendations as BeginnerRecommendation[];
+
   const detailTabs: TabItem[] = [
+    // New beginner-friendly tab first
+    ...(beginnerAnalysis ? [{
+      id: 'action-plan',
+      label: 'Action Plan',
+      icon: <CheckCircle className="w-4 h-4" />,
+      content: (
+        <TabPanel>
+          <div className="space-y-8">
+            {/* Language Detection Info */}
+            {beginnerAnalysis.languageSpecific && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Globe className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Website Language Detected</h3>
+                </div>
+                <p className="text-blue-800 text-sm">
+                  This website appears to be in <strong>{beginnerAnalysis.languageSpecific.detectedLanguage.toUpperCase()}</strong>.
+                  All recommendations below are tailored for this language.
+                </p>
+              </div>
+            )}
+
+            {/* Quick Wins Section */}
+            {beginnerAnalysis.quickWins && (
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-green-100 p-2 rounded-lg">
+                    <Zap className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">✅ Quick Wins</h3>
+                    <p className="text-gray-600">{beginnerAnalysis.quickWins.description}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {beginnerAnalysis.quickWins.actions.map((action, index) => (
+                    <QuickWinCard key={index} action={action} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Important Fixes Section */}
+            {beginnerAnalysis.importantFixes && (
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-orange-100 p-2 rounded-lg">
+                    <AlertTriangle className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">⚠️ Important Fixes</h3>
+                    <p className="text-gray-600">{beginnerAnalysis.importantFixes.description}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {beginnerAnalysis.importantFixes.actions.map((action, index) => (
+                    <ImportantFixCard key={index} action={action} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Advanced Optimizations Section */}
+            {beginnerAnalysis.advancedOptimizations && (
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Code className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">🔧 Advanced Optimizations</h3>
+                    <p className="text-gray-600">{beginnerAnalysis.advancedOptimizations.description}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {beginnerAnalysis.advancedOptimizations.actions.map((action, index) => (
+                    <AdvancedActionCard key={index} action={action} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Language Specific Recommendations */}
+            {beginnerAnalysis.languageSpecific?.recommendations && (
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Globe className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">🌍 Language-Specific Tips</h3>
+                    <p className="text-gray-600">Recommendations tailored for your website's language</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {beginnerAnalysis.languageSpecific.recommendations.map((rec, index) => (
+                    <div key={index} className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                      <h4 className="font-semibold text-blue-900 mb-2">{rec.task}</h4>
+                      <p className="text-blue-800 text-sm mb-2">{rec.localContext}</p>
+                      <p className="text-blue-700 text-sm">{rec.implementation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </TabPanel>
+      )
+    }] : []),
     {
       id: 'issues',
-      label: 'Issues & Recommendations',
+      label: 'Technical Details',
       icon: <AlertTriangle className="w-4 h-4" />,
       content: (
         <TabPanel>
@@ -390,6 +508,151 @@ export function ResultsDashboard({
           />
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Helper components for beginner-friendly cards
+function QuickWinCard({ action }: { action: QuickWinAction }) {
+  return (
+    <div className="border border-green-200 rounded-lg p-4 bg-green-50">
+      <div className="flex items-start space-x-3">
+        <div className="bg-green-600 text-white rounded-full p-1 mt-1">
+          <CheckCircle className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <h4 className="font-semibold text-green-900 mb-2">{action.task}</h4>
+          <p className="text-green-800 text-sm mb-3">{action.whyItMatters}</p>
+          <div className="bg-white border border-green-200 rounded-md p-3 mb-3">
+            <h5 className="font-medium text-green-900 mb-1">How to do this:</h5>
+            <p className="text-green-800 text-sm">{action.howToDo}</p>
+          </div>
+          <div className="flex items-center space-x-4 text-xs text-green-700">
+            <span className="flex items-center">
+              <Clock className="w-3 h-3 mr-1" />
+              {action.timeNeeded}
+            </span>
+            <span className={`px-2 py-1 rounded-full ${
+              action.impact === 'high' ? 'bg-red-100 text-red-800' :
+              action.impact === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-blue-100 text-blue-800'
+            }`}>
+              {action.impact} impact
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ImportantFixCard({ action }: { action: ImportantFixAction }) {
+  const [showDetails, setShowDetails] = useState(false);
+
+  return (
+    <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+      <div className="flex items-start space-x-3">
+        <div className="bg-orange-600 text-white rounded-full p-1 mt-1">
+          <AlertTriangle className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <h4 className="font-semibold text-orange-900 mb-2">{action.task}</h4>
+          <p className="text-orange-800 text-sm mb-3">{action.whyItMatters}</p>
+
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="text-orange-700 hover:text-orange-900 text-sm font-medium mb-3 flex items-center"
+          >
+            {showDetails ? 'Hide Details' : 'Show How to Fix'}
+            <Eye className="w-4 h-4 ml-1" />
+          </button>
+
+          {showDetails && (
+            <div className="bg-white border border-orange-200 rounded-md p-3 mb-3">
+              <h5 className="font-medium text-orange-900 mb-2">Implementation Steps:</h5>
+              <p className="text-orange-800 text-sm mb-3">{action.howToDo}</p>
+              {action.codeExample && (
+                <div>
+                  <h6 className="font-medium text-orange-900 mb-1">Code Example:</h6>
+                  <pre className="bg-gray-100 text-gray-800 p-2 rounded text-xs overflow-x-auto">
+                    <code>{action.codeExample}</code>
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center space-x-4 text-xs text-orange-700">
+            <span className="flex items-center">
+              <Clock className="w-3 h-3 mr-1" />
+              {action.timeNeeded}
+            </span>
+            <span className={`px-2 py-1 rounded-full ${
+              action.impact === 'high' ? 'bg-red-100 text-red-800' :
+              action.impact === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-blue-100 text-blue-800'
+            }`}>
+              {action.impact} impact
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdvancedActionCard({ action }: { action: AdvancedAction }) {
+  const [showTechnical, setShowTechnical] = useState(false);
+
+  return (
+    <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+      <div className="flex items-start space-x-3">
+        <div className="bg-purple-600 text-white rounded-full p-1 mt-1">
+          <Code className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-2">
+            <h4 className="font-semibold text-purple-900">{action.task}</h4>
+            <span className="bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-full">
+              Advanced
+            </span>
+          </div>
+          <p className="text-purple-800 text-sm mb-3">{action.whyItMatters}</p>
+
+          <button
+            onClick={() => setShowTechnical(!showTechnical)}
+            className="text-purple-700 hover:text-purple-900 text-sm font-medium mb-3 flex items-center"
+          >
+            {showTechnical ? 'Hide Technical Details' : 'Show Technical Details'}
+            <Code className="w-4 h-4 ml-1" />
+          </button>
+
+          {showTechnical && (
+            <div className="bg-white border border-purple-200 rounded-md p-3 mb-3">
+              <h5 className="font-medium text-purple-900 mb-2">Implementation:</h5>
+              <p className="text-purple-800 text-sm mb-3">{action.howToDo}</p>
+              <div>
+                <h6 className="font-medium text-purple-900 mb-1">Technical Details:</h6>
+                <p className="text-purple-700 text-sm">{action.technicalDetails}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center space-x-4 text-xs text-purple-700">
+            <span className="flex items-center">
+              <Clock className="w-3 h-3 mr-1" />
+              {action.timeNeeded}
+            </span>
+            <span className={`px-2 py-1 rounded-full ${
+              action.impact === 'high' ? 'bg-red-100 text-red-800' :
+              action.impact === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-blue-100 text-blue-800'
+            }`}>
+              {action.impact} impact
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
