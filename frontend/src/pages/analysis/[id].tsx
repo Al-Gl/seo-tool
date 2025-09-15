@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import toast from 'react-hot-toast';
@@ -10,7 +10,7 @@ import {
   ExternalLink,
   Copy,
   CheckCircle,
-  AlertCircle // <-- The missing import is now added
+  AlertCircle // <-- The missing import is now correctly added
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { ResultsDashboard } from '@/components/ResultsDashboard';
@@ -26,46 +26,52 @@ interface AnalysisPageProps {
 }
 
 export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
+  // --- ALL HOOKS ARE NOW AT THE TOP LEVEL ---
   const router = useRouter();
-  const [isRerunning, setIsRerunning] = React.useState(false);
-  const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
-  const [shareUrl, setShareUrl] = React.useState('');
-  
+  const [isRerunning, setIsRerunning] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
   const { data: analysis, isLoading, error, refetch } = useAnalysis(analysisId);
   const submitMutation = useSubmitAnalysis();
+  const [retryCount, setRetryCount] = useState(0);
+  const [showRetry, setShowRetry] = useState(false);
 
-  // --- Conditional returns must happen after all hooks ---
+  useEffect(() => {
+    if (error && retryCount < 3) {
+      const retryTimer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        refetch();
+      }, 2000);
+      return () => clearTimeout(retryTimer);
+    } else if (error && retryCount >= 3) {
+      setShowRetry(true);
+    }
+  }, [error, retryCount, refetch, analysisId]);
   
+  // --- CONDITIONAL RETURNS NOW HAPPEN AFTER ALL HOOKS ---
+
   if (isLoading) {
     return (
-      <Layout 
-        title="Loading Analysis - PulsarRank"
-        description="Loading your SEO analysis results..."
-      >
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <p className="text-gray-600">Loading analysis...</p>
-          </div>
+      <Layout title="Loading Analysis - PulsarRank">
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <p>Loading analysis results...</p>
         </div>
       </Layout>
     );
   }
 
-  if (error || !analysis) {
+  if (!analysis || (error && showRetry)) {
     return (
-      <Layout 
-        title="Analysis Not Found - PulsarRank"
-        description="The requested SEO analysis could not be found."
-      >
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Layout title="Error - PulsarRank">
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
           <Card>
             <CardContent className="p-12 text-center">
               <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Analysis Not Found
+                Analysis Not Found or Failed
               </h1>
               <p className="text-gray-600 mb-6">
-                The analysis you're looking for doesn't exist or an error occurred.
+                The analysis you're looking for couldn't be loaded.
               </p>
               <Button onClick={() => router.push('/')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -78,11 +84,12 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
     );
   }
 
-  // --- Component Logic & Handlers ---
+  // --- REST OF THE COMPONENT LOGIC ---
 
-  const isCompleted = analysis.status === 'completed';
-  const domain = extractDomain(analysis.url);
-  const pageTitle = `SEO Analysis for ${domain}`;
+  const { status, url, updatedAt } = analysis;
+  const isCompleted = status === 'completed';
+  const domain = extractDomain(url);
+  const pageTitle = `Analysis for ${domain}`;
 
   const handleRerun = async () => {
     setIsRerunning(true);
@@ -95,17 +102,16 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
     } catch (err) {
       toast.dismiss();
       toast.error('Failed to start new analysis.');
-      console.error('Re-run analysis error:', err);
     } finally {
       setIsRerunning(false);
     }
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const shareableUrl = window.location.href;
     try {
-      await navigator.clipboard.writeText(url);
-      setShareUrl(url);
+      await navigator.clipboard.writeText(shareableUrl);
+      setShareUrl(shareableUrl);
       toast.success('Link copied to clipboard!');
       setTimeout(() => setShareUrl(''), 3000);
     } catch (err) {
@@ -114,9 +120,8 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
   };
   
   return (
-    <Layout title={pageTitle} description={`Results for ${analysis.url}`}>
+    <Layout title={pageTitle} description={`Results for ${url}`}>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
@@ -126,11 +131,11 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
                 </Button>
                 <div className="h-6 w-px bg-gray-300" />
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900 truncate" title={analysis.url}>
+                  <h1 className="text-lg font-semibold text-gray-900 truncate" title={url}>
                     {domain}
                   </h1>
                   <p className="text-sm text-gray-500">
-                    {formatRelativeTime(analysis.updatedAt)}
+                    {formatRelativeTime(updatedAt)}
                   </p>
                 </div>
               </div>
@@ -148,11 +153,9 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
             </div>
           </div>
         </div>
-
-        {/* Content */}
         <div className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {isCompleted ? (
+            {isCompleted && analysis.seoAnalysis ? (
               <ResultsDashboard
                 results={analysis}
                 analysisId={analysisId}
@@ -160,9 +163,7 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
               />
             ) : (
               <ProgressTracker
-                // You'll need to pass the status polling data here
-                // For now, it shows the initial status
-                status={analysis.status}
+                status={status}
               />
             )}
           </div>
@@ -174,11 +175,9 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.params!;
-
   if (!id || typeof id !== 'string') {
     return { notFound: true };
   }
-
   return {
     props: {
       analysisId: id,
