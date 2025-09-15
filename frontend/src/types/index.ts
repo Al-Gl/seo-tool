@@ -308,6 +308,98 @@ export interface ErrorState {
   code?: string;
 }
 
+// Enhanced SEO Optimization Types
+export interface ConcreteOptimization {
+  type: 'title' | 'meta-description' | 'heading' | 'content' | 'technical';
+  title: string;
+  current: string;
+  optimized: string;
+  reason: string;
+  impact: 'high' | 'medium' | 'low';
+  difficulty: 'easy' | 'medium' | 'hard';
+  estimatedTime: string;
+  keywordsTargeted?: string[];
+}
+
+export interface SearchIntentAnalysis {
+  primaryIntent: 'informational' | 'navigational' | 'commercial' | 'transactional';
+  intentConfidence: number; // 0-100
+  secondaryIntents: string[];
+  keywordAnalysis: {
+    mainKeywords: string[];
+    longtailOpportunities: string[];
+    semanticKeywords: string[];
+    competitorKeywords: string[];
+  };
+  contentFitScore: number; // 0-100
+  gapAnalysis: string[];
+  userJourneyStage: 'awareness' | 'consideration' | 'decision' | 'retention';
+}
+
+export interface TechnicalSEOData {
+  hasCanonical: boolean;
+  canonicalUrl?: string;
+  openGraph: Record<string, string>;
+  twitterCard: Record<string, string>;
+  metaTags: Record<string, string>;
+  hasViewport: boolean;
+  hasSSL: boolean;
+  hasFavicon: boolean;
+  robotsMeta?: string;
+  schemaTypes: string[];
+  hreflangTags: string[];
+}
+
+export interface LinkAnalysis {
+  internal: number;
+  external: number;
+  noFollow: number;
+  doFollow: number;
+  brokenLinks: Array<{ url: string; text: string; status: number }>;
+  anchorTextDistribution: Record<string, number>;
+  linkEquity: 'poor' | 'fair' | 'good' | 'excellent';
+}
+
+export interface ImageSEOData {
+  totalImages: number;
+  missingAlt: number;
+  oversized: number;
+  unoptimized: number;
+  averageFileSize: number;
+  formats: Record<string, number>; // jpg: 5, png: 3, webp: 2
+}
+
+export interface EnhancedCrawlData {
+  technical: TechnicalSEOData;
+  links: LinkAnalysis;
+  images: ImageSEOData;
+  contentQuality: {
+    readabilityScore: number;
+    keywordDensity: Record<string, number>;
+    duplicateContentScore: number;
+    freshness: number; // days since last update
+  };
+}
+
+// Enhanced AI Insights
+export interface AIInsights {
+  summary: string;
+  concreteOptimizations: ConcreteOptimization[];
+  searchIntent: SearchIntentAnalysis;
+  quickWins: string[];
+  priorityActions: Array<{
+    action: string;
+    impact: number;
+    effort: number;
+    category: SEOCategory;
+  }>;
+  competitiveAnalysis?: {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+  };
+}
+
 // Chart Data Types for Visualizations
 export interface ChartDataPoint {
   label: string;

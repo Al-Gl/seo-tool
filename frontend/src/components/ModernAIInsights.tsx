@@ -1,0 +1,415 @@
+import React, { useState } from 'react';
+import {
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap,
+  Eye,
+  Copy,
+  ChevronRight,
+  BarChart3,
+  Users,
+  Search,
+  Lightbulb,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Brain,
+  Wand2
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ConcreteOptimization, SearchIntentAnalysis, AIInsights } from '@/types';
+
+interface ModernAIInsightsProps {
+  insights: AIInsights;
+  currentTitle?: string;
+  currentMetaDescription?: string;
+  url: string;
+}
+
+export function ModernAIInsights({
+  insights,
+  currentTitle = "",
+  currentMetaDescription = "",
+  url
+}: ModernAIInsightsProps) {
+  const [activeOptimization, setActiveOptimization] = useState<string | null>(null);
+  const [copiedOptimization, setCopiedOptimization] = useState<string | null>(null);
+
+  const handleCopyOptimization = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedOptimization(id);
+      setTimeout(() => setCopiedOptimization(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
+  const getIntentColor = (intent: string) => {
+    switch (intent) {
+      case 'informational': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'navigational': return 'bg-green-100 text-green-800 border-green-200';
+      case 'commercial': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'transactional': return 'bg-purple-100 text-purple-800 border-purple-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'bg-green-100 text-green-800 border-green-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'hard': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Hero AI Insights Card */}
+      <Card className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 border-0 text-white overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-48 translate-x-48"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-tr from-white/5 to-transparent rounded-full translate-y-36 -translate-x-36"></div>
+
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center text-2xl font-bold">
+            <div className="bg-white/20 p-3 rounded-xl mr-4 backdrop-blur-sm">
+              <Brain className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span>PulsarRank AI Insights</span>
+                <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
+              </div>
+              <p className="text-lg font-normal text-white/80 mt-1">
+                Advanced SEO Intelligence & Optimization Engine
+              </p>
+            </div>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="relative z-10 space-y-6">
+          {/* AI Summary with modern styling */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="flex items-center space-x-2 mb-4">
+              <Wand2 className="w-5 h-5 text-yellow-300" />
+              <h3 className="text-lg font-semibold">AI Analysis Summary</h3>
+            </div>
+            <p className="text-white/90 leading-relaxed text-base">
+              {insights.summary || 'AI analysis summary is being generated.'}
+            </p>
+          </div>
+
+          {/* Quick Wins Section */}
+          {insights.quickWins && insights.quickWins.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center space-x-2 mb-4">
+                <Zap className="w-5 h-5 text-yellow-300" />
+                <h3 className="text-lg font-semibold">⚡ Quick Wins</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {insights.quickWins.map((win, index) => (
+                  <div key={index} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-300 flex-shrink-0" />
+                      <span className="text-sm text-white/90">{win}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Search Intent Analysis */}
+      {insights.searchIntent && (
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center text-blue-900">
+              <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                <Target className="w-5 h-5 text-blue-600" />
+              </div>
+              Search Intent Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Primary Intent */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <span className="text-gray-600 font-medium">Primary Intent:</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getIntentColor(insights.searchIntent.primaryIntent)}`}>
+                  {insights.searchIntent.primaryIntent.charAt(0).toUpperCase() + insights.searchIntent.primaryIntent.slice(1)}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Confidence:</span>
+                <span className="font-semibold text-blue-600">{insights.searchIntent.intentConfidence}%</span>
+              </div>
+            </div>
+
+            {/* Content Fit Score */}
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-gray-700">Content-Intent Alignment</span>
+                <span className="text-2xl font-bold text-blue-600">{insights.searchIntent.contentFitScore}/100</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${insights.searchIntent.contentFitScore}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Keyword Analysis */}
+            {insights.searchIntent.keywordAnalysis && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center">
+                    <Search className="w-4 h-4 mr-2 text-blue-500" />
+                    Main Keywords
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {insights.searchIntent.keywordAnalysis.mainKeywords.map((keyword, index) => (
+                      <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <h4 className="font-semibold text-gray-800 mb-2 flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-2 text-green-500" />
+                    Opportunities
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {insights.searchIntent.keywordAnalysis.longtailOpportunities.slice(0, 5).map((keyword, index) => (
+                      <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* User Journey Stage */}
+            <div className="bg-white rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center space-x-3">
+                <Users className="w-5 h-5 text-blue-500" />
+                <span className="font-medium text-gray-700">User Journey Stage:</span>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {insights.searchIntent.userJourneyStage.charAt(0).toUpperCase() + insights.searchIntent.userJourneyStage.slice(1)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Concrete Optimizations */}
+      {insights.concreteOptimizations && insights.concreteOptimizations.length > 0 && (
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="flex items-center text-green-900">
+              <div className="bg-green-100 p-2 rounded-lg mr-3">
+                <Lightbulb className="w-5 h-5 text-green-600" />
+              </div>
+              Concrete Optimizations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {insights.concreteOptimizations.map((optimization, index) => (
+              <OptimizationCard
+                key={index}
+                optimization={optimization}
+                isActive={activeOptimization === `opt-${index}`}
+                onToggle={() => setActiveOptimization(
+                  activeOptimization === `opt-${index}` ? null : `opt-${index}`
+                )}
+                onCopy={(text) => handleCopyOptimization(text, `opt-${index}`)}
+                isCopied={copiedOptimization === `opt-${index}`}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Priority Actions */}
+      {insights.priorityActions && insights.priorityActions.length > 0 && (
+        <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+          <CardHeader>
+            <CardTitle className="flex items-center text-orange-900">
+              <div className="bg-orange-100 p-2 rounded-lg mr-3">
+                <BarChart3 className="w-5 h-5 text-orange-600" />
+              </div>
+              Priority Actions Matrix
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {insights.priorityActions.map((action, index) => (
+                <div key={index} className="bg-white rounded-lg p-4 border border-orange-200">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-semibold text-gray-800">{action.action}</h4>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getImpactColor(action.impact > 7 ? 'high' : action.impact > 4 ? 'medium' : 'low')}`}>
+                      Impact: {action.impact}/10
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Effort: {action.effort}/10</span>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                      {action.category}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// Individual Optimization Card Component
+function OptimizationCard({
+  optimization,
+  isActive,
+  onToggle,
+  onCopy,
+  isCopied
+}: {
+  optimization: ConcreteOptimization;
+  isActive: boolean;
+  onToggle: () => void;
+  onCopy: (text: string) => void;
+  isCopied: boolean;
+}) {
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy': return 'bg-green-100 text-green-800 border-green-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'hard': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg border border-green-200 overflow-hidden">
+      <div
+        className="p-4 cursor-pointer hover:bg-green-50 transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-2">
+              <h4 className="font-semibold text-gray-800">{optimization.title}</h4>
+              <span className={`px-2 py-1 rounded text-xs font-medium border ${getImpactColor(optimization.impact)}`}>
+                {optimization.impact} impact
+              </span>
+              <span className={`px-2 py-1 rounded text-xs font-medium border ${getDifficultyColor(optimization.difficulty)}`}>
+                {optimization.difficulty}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 mb-2">{optimization.reason}</p>
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <span className="flex items-center">
+                <Clock className="w-3 h-3 mr-1" />
+                {optimization.estimatedTime}
+              </span>
+              {optimization.keywordsTargeted && optimization.keywordsTargeted.length > 0 && (
+                <span>Keywords: {optimization.keywordsTargeted.join(', ')}</span>
+              )}
+            </div>
+          </div>
+          <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${isActive ? 'rotate-90' : ''}`} />
+        </div>
+      </div>
+
+      {isActive && (
+        <div className="border-t border-green-200 bg-green-25">
+          <div className="p-4 space-y-4">
+            {/* Current vs Optimized */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  <span className="text-sm font-medium text-gray-700">Current</span>
+                </div>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-gray-800 font-mono">{optimization.current}</p>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium text-gray-700">Optimized</span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCopy(optimization.optimized);
+                    }}
+                    className="flex items-center space-x-1 text-xs text-green-600 hover:text-green-700 transition-colors"
+                  >
+                    {isCopied ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-sm text-gray-800 font-mono">{optimization.optimized}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Implementation Guide */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2 mb-2">
+                <ArrowRight className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-medium text-blue-900">How to implement</span>
+              </div>
+              <p className="text-sm text-blue-800">
+                Replace your current {optimization.type.replace('-', ' ')} with the optimized version above.
+                This change targets {optimization.keywordsTargeted?.join(', ') || 'key search terms'}
+                and should improve your search rankings.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

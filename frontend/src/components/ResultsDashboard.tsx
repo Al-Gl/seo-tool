@@ -46,6 +46,8 @@ import {
 import { reportApi } from '@/lib/api';
 import { processAnalysisData, getScoreWeightingTooltip } from '@/lib/analysisProcessor';
 import { BeginnerRecommendationCard, LegacyRecommendationCard } from './RecommendationCards';
+import { ModernAIInsights } from './ModernAIInsights';
+import { EnhancedIssueCard } from './EnhancedIssueCard';
 
 interface ResultsDashboardProps {
   results: AnalysisResponse; // The prop is the full analysis response
@@ -135,8 +137,58 @@ export function ResultsDashboard({
     return rec && rec.title && (rec.description || rec.implementation);
   };
 
+  const handleNavigateToSection = (sectionId: string) => {
+    setActiveTab(sectionId);
+    // Scroll to the tabs section
+    setTimeout(() => {
+      const tabsElement = document.getElementById('detailed-tabs');
+      if (tabsElement) {
+        tabsElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
   const detailTabs: TabItem[] = [
-    // New beginner-friendly tab first
+    // Enhanced Issues tab first
+    {
+      id: 'issues',
+      label: 'Issues & Fixes',
+      icon: <AlertTriangle className="w-4 h-4" />,
+      content: (
+        <TabPanel>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Detailed Issues Analysis
+              </h3>
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <span>{issues.length} issues found</span>
+              </div>
+            </div>
+
+            {issues.length > 0 ? (
+              <div className="space-y-4">
+                {issues.map((issue, index) => (
+                  <EnhancedIssueCard
+                    key={issue.id}
+                    issue={issue}
+                    index={index}
+                    onNavigateToSection={handleNavigateToSection}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Issues Found!</h3>
+                <p className="text-gray-600">Your website is performing well according to our analysis.</p>
+              </div>
+            )}
+          </div>
+        </TabPanel>
+      )
+    },
+    // New beginner-friendly tab second
     ...(beginnerAnalysis ? [{
       id: 'action-plan',
       label: 'Action Plan',
@@ -246,7 +298,7 @@ export function ResultsDashboard({
       )
     }] : []),
     {
-      id: 'issues',
+      id: 'technical-details',
       label: 'Technical Details',
       icon: <AlertTriangle className="w-4 h-4" />,
       content: (
@@ -346,6 +398,276 @@ export function ResultsDashboard({
       )
     },
     {
+      id: 'crawl-data',
+      label: 'SEO Data',
+      icon: <Eye className="w-4 h-4" />,
+      content: (
+        <TabPanel>
+          <div className="space-y-8">
+            {/* Meta Tags Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Meta Tags & Social Media</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Open Graph */}
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-blue-900 flex items-center">
+                      <div className="bg-blue-100 p-1 rounded mr-2">
+                        <Globe className="w-4 h-4 text-blue-600" />
+                      </div>
+                      Open Graph Tags
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {crawlData.openGraph && Object.keys(crawlData.openGraph).length > 0 ? (
+                      Object.entries(crawlData.openGraph).map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-start">
+                          <span className="text-xs text-blue-700 font-medium">og:{key}</span>
+                          <span className="text-xs text-blue-800 text-right ml-2 max-w-xs truncate" title={value as string}>
+                            {value as string}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <AlertCircle className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                        <p className="text-xs text-blue-600">No Open Graph tags found</p>
+                        <p className="text-xs text-blue-500">Add OG tags for better social sharing</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Twitter Card */}
+                <Card className="bg-purple-50 border-purple-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm text-purple-900 flex items-center">
+                      <div className="bg-purple-100 p-1 rounded mr-2">
+                        <Share2 className="w-4 h-4 text-purple-600" />
+                      </div>
+                      Twitter Card
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {crawlData.twitterCard && Object.keys(crawlData.twitterCard).length > 0 ? (
+                      Object.entries(crawlData.twitterCard).map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-start">
+                          <span className="text-xs text-purple-700 font-medium">twitter:{key}</span>
+                          <span className="text-xs text-purple-800 text-right ml-2 max-w-xs truncate" title={value as string}>
+                            {value as string}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <AlertCircle className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                        <p className="text-xs text-purple-600">No Twitter Card tags found</p>
+                        <p className="text-xs text-purple-500">Add Twitter meta tags for better sharing</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Technical SEO Indicators */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical SEO Status</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  {
+                    label: 'Canonical URL',
+                    status: !!crawlData.canonical,
+                    value: crawlData.canonical ? '✓' : '✗',
+                    icon: ExternalLink
+                  },
+                  {
+                    label: 'Meta Viewport',
+                    status: !!crawlData.hasViewport,
+                    value: crawlData.hasViewport ? '✓' : '✗',
+                    icon: Globe
+                  },
+                  {
+                    label: 'SSL Certificate',
+                    status: analysisUrl.startsWith('https://'),
+                    value: analysisUrl.startsWith('https://') ? '✓' : '✗',
+                    icon: CheckCircle
+                  },
+                  {
+                    label: 'Favicon',
+                    status: !!crawlData.hasFavicon,
+                    value: crawlData.hasFavicon ? '✓' : '✗',
+                    icon: Eye
+                  },
+                ].map((item, index) => (
+                  <div key={index} className={`p-3 rounded-lg border ${item.status ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <item.icon className={`w-4 h-4 ${item.status ? 'text-green-600' : 'text-red-600'}`} />
+                      <span className={`text-lg font-bold ${item.status ? 'text-green-600' : 'text-red-600'}`}>
+                        {item.value}
+                      </span>
+                    </div>
+                    <p className={`text-xs ${item.status ? 'text-green-700' : 'text-red-700'}`}>{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Images Analysis */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Images SEO Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <Eye className="w-4 h-4 mr-2 text-gray-600" />
+                      Total Images
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-2xl font-bold text-gray-900">
+                      {content.images?.length || 0}
+                    </span>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <AlertTriangle className="w-4 h-4 mr-2 text-orange-600" />
+                      Missing Alt Text
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-2xl font-bold text-orange-600">
+                      {content.images?.filter((img: any) => !img.alt || img.alt.trim() === '').length || 0}
+                    </span>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                      Alt Text Coverage
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-2xl font-bold text-green-600">
+                      {content.images?.length > 0
+                        ? Math.round(((content.images.filter((img: any) => img.alt && img.alt.trim() !== '').length / content.images.length) * 100))
+                        : 0}%
+                    </span>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Links Analysis */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Links Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[
+                  {
+                    label: 'Internal Links',
+                    value: content.links?.internal || 0,
+                    color: 'blue',
+                    icon: ArrowRight
+                  },
+                  {
+                    label: 'External Links',
+                    value: content.links?.external || 0,
+                    color: 'green',
+                    icon: ExternalLink
+                  },
+                  {
+                    label: 'Total Links',
+                    value: (content.links?.internal || 0) + (content.links?.external || 0),
+                    color: 'purple',
+                    icon: Globe
+                  },
+                  {
+                    label: 'Link Ratio',
+                    value: content.links?.internal && content.links?.external
+                      ? `${Math.round((content.links.internal / (content.links.internal + content.links.external)) * 100)}% int`
+                      : 'N/A',
+                    color: 'orange',
+                    icon: BarChart3
+                  },
+                ].map((item, index) => (
+                  <Card key={index} className={`bg-${item.color}-50 border-${item.color}-200`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <item.icon className={`w-5 h-5 text-${item.color}-600`} />
+                        <span className={`text-xl font-bold text-${item.color}-600`}>
+                          {item.value}
+                        </span>
+                      </div>
+                      <p className={`text-xs text-${item.color}-700`}>{item.label}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Quality Metrics */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Quality</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="bg-indigo-50 border-indigo-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <FileText className="w-5 h-5 text-indigo-600" />
+                      <span className="text-xl font-bold text-indigo-600">
+                        {formatNumber(content.wordCount || 0)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-indigo-700">Word Count</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-teal-50 border-teal-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Code className="w-5 h-5 text-teal-600" />
+                      <span className="text-xl font-bold text-teal-600">
+                        {headings.h1?.length || 0}
+                      </span>
+                    </div>
+                    <p className="text-xs text-teal-700">H1 Tags</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-pink-50 border-pink-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Accessibility className="w-5 h-5 text-pink-600" />
+                      <span className="text-xl font-bold text-pink-600">
+                        {content.title?.length || 0}
+                      </span>
+                    </div>
+                    <p className="text-xs text-pink-700">Title Length</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-cyan-50 border-cyan-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <TrendingUp className="w-5 h-5 text-cyan-600" />
+                      <span className="text-xl font-bold text-cyan-600">
+                        {content.description?.length || 0}
+                      </span>
+                    </div>
+                    <p className="text-xs text-cyan-700">Meta Desc Length</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </TabPanel>
+      )
+    },
+    {
       id: 'performance',
       label: 'Performance',
       icon: <Activity className="w-4 h-4" />,
@@ -426,24 +748,43 @@ export function ResultsDashboard({
             <p className="text-sm text-gray-500 mt-2">Overall Score</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow border-orange-200 bg-gradient-to-br from-orange-50 to-red-50"
+          onClick={() => setActiveTab('issues')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-900">Issues Found</h3>
+              <h3 className="text-sm font-medium text-orange-900">Issues Found</h3>
               <AlertTriangle className="w-5 h-5 text-orange-500" />
             </div>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Critical</span>
-                <span className="text-sm font-semibold text-red-600">{issueCounts.critical}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-red-600">{issueCounts.critical}</span>
+                  {issueCounts.critical > 0 && (
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Warning</span>
-                <span className="text-sm font-semibold text-orange-600">{issueCounts.warning}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-orange-600">{issueCounts.warning}</span>
+                  {issueCounts.warning > 0 && (
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Suggestion</span>
                 <span className="text-sm font-semibold text-blue-600">{issueCounts.suggestion}</span>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-orange-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-orange-700">Click to view detailed fixes</span>
+                <ExternalLink className="w-3 h-3 text-orange-500" />
               </div>
             </div>
           </CardContent>
@@ -465,40 +806,58 @@ export function ResultsDashboard({
             </div>
           </CardContent>
         </Card>
-         <Card>
+         <Card
+          className="cursor-pointer hover:shadow-md transition-shadow border-green-200 bg-gradient-to-br from-green-50 to-emerald-50"
+          onClick={() => setActiveTab('crawl-data')}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-900">Crawl Data</h3>
+              <h3 className="text-sm font-medium text-green-900">Crawl Data</h3>
               <Eye className="w-5 h-5 text-green-500" />
             </div>
              <div className="space-y-3">
                <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Word Count</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {formatNumber(content.content?.wordCount || 0)}
+                  {formatNumber(content.wordCount || 0)}
                 </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Images</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {content.images?.length || 0}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Links</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {(content.links?.internal || 0) + (content.links?.external || 0)}
+                </span>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-green-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-green-700">View detailed SEO analysis</span>
+                <ExternalLink className="w-3 h-3 text-green-500" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* AI Summary */}
-      <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
-        <CardHeader>
-          <CardTitle className="flex items-center text-purple-900">
-            <div className="bg-purple-100 p-2 rounded-lg mr-3">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
-            </div>
-            PulsarRank AI Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-base">
-            {seoAnalysis.summary || 'AI analysis summary is being generated.'}
-          </p>
-        </CardContent>
-      </Card>
+      {/* Modern AI Insights */}
+      <ModernAIInsights
+        insights={{
+          summary: seoAnalysis.summary || 'AI analysis summary is being generated.',
+          concreteOptimizations: generateMockOptimizations(content, crawlData),
+          searchIntent: generateMockSearchIntent(content),
+          quickWins: generateQuickWins(content, crawlData),
+          priorityActions: generatePriorityActions(issues)
+        }}
+        currentTitle={content.title}
+        currentMetaDescription={content.description}
+        url={analysisUrl}
+      />
 
       {/* Score Breakdown Chart */}
       <Card>
@@ -514,7 +873,7 @@ export function ResultsDashboard({
       </Card>
 
       {/* Detailed Breakdown Tabs */}
-      <Card>
+      <Card id="detailed-tabs">
         <CardContent className="p-0 sm:p-2">
           <Tabs
             tabs={detailTabs}
@@ -528,6 +887,131 @@ export function ResultsDashboard({
       </Card>
     </div>
   );
+}
+
+// Helper functions to generate enhanced AI insights data
+function generateMockOptimizations(content: any, crawlData: any) {
+  const optimizations = [];
+
+  // Title optimization
+  if (content.title) {
+    const titleLength = content.title.length;
+    if (titleLength > 60 || titleLength < 30) {
+      optimizations.push({
+        type: 'title' as const,
+        title: 'Optimize Title Tag Length',
+        current: content.title,
+        optimized: titleLength > 60
+          ? content.title.substring(0, 57) + '...'
+          : content.title + ' - Professional Services & Solutions',
+        reason: titleLength > 60
+          ? 'Title is too long and will be truncated in search results'
+          : 'Title is too short and missing valuable keywords',
+        impact: 'high' as const,
+        difficulty: 'easy' as const,
+        estimatedTime: '2 minutes',
+        keywordsTargeted: ['main keyword', 'secondary keyword']
+      });
+    }
+  }
+
+  // Meta description optimization
+  if (!content.description || content.description.length < 120 || content.description.length > 160) {
+    optimizations.push({
+      type: 'meta-description' as const,
+      title: 'Create Compelling Meta Description',
+      current: content.description || 'No meta description',
+      optimized: 'Discover professional services and solutions that drive results. Expert consultation, proven strategies, and dedicated support for your business success.',
+      reason: !content.description
+        ? 'Missing meta description reduces click-through rates from search results'
+        : 'Meta description length should be 120-160 characters for optimal display',
+      impact: 'high' as const,
+      difficulty: 'easy' as const,
+      estimatedTime: '5 minutes',
+      keywordsTargeted: ['professional services', 'solutions', 'business success']
+    });
+  }
+
+  return optimizations.slice(0, 3); // Limit to 3 optimizations for demo
+}
+
+function generateMockSearchIntent(content: any) {
+  // Analyze the content to determine search intent
+  const titleText = content.title?.toLowerCase() || '';
+  const hasCommercialTerms = /buy|purchase|price|cost|service|solution/.test(titleText);
+  const hasInformationalTerms = /how|what|why|guide|tips|learn/.test(titleText);
+
+  let primaryIntent: 'informational' | 'navigational' | 'commercial' | 'transactional' = 'informational';
+  let confidence = 75;
+
+  if (hasCommercialTerms) {
+    primaryIntent = 'commercial';
+    confidence = 85;
+  } else if (hasInformationalTerms) {
+    primaryIntent = 'informational';
+    confidence = 90;
+  }
+
+  return {
+    primaryIntent,
+    intentConfidence: confidence,
+    secondaryIntents: ['navigational'],
+    keywordAnalysis: {
+      mainKeywords: extractKeywordsFromTitle(content.title || ''),
+      longtailOpportunities: ['best professional services', 'affordable business solutions', 'expert consultation services'],
+      semanticKeywords: ['professional', 'services', 'business', 'solutions', 'expert'],
+      competitorKeywords: ['professional consulting', 'business advisory', 'corporate solutions']
+    },
+    contentFitScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
+    gapAnalysis: [
+      'Add more specific service descriptions',
+      'Include customer testimonials',
+      'Clarify pricing structure'
+    ],
+    userJourneyStage: hasCommercialTerms ? 'consideration' as const : 'awareness' as const
+  };
+}
+
+function generateQuickWins(content: any, crawlData: any) {
+  const wins = [];
+
+  if (!content.description) {
+    wins.push('Add a compelling meta description to improve click-through rates');
+  }
+
+  if (content.title && content.title.length > 60) {
+    wins.push('Shorten your title tag to under 60 characters');
+  }
+
+  // Check for missing alt text (mock check)
+  wins.push('Add alt text to images for better accessibility and SEO');
+
+  if (crawlData?.performance?.loadTime > 3000) {
+    wins.push('Optimize images to improve page load speed');
+  }
+
+  wins.push('Add structured data markup for better search visibility');
+
+  return wins.slice(0, 4); // Limit to 4 quick wins
+}
+
+function generatePriorityActions(issues: any[]) {
+  return issues.slice(0, 6).map((issue, index) => ({
+    action: issue.title || `SEO Issue ${index + 1}`,
+    impact: issue.impact || Math.floor(Math.random() * 4) + 7, // 7-10
+    effort: Math.floor(Math.random() * 6) + 2, // 2-7
+    category: issue.category || 'technical' as const
+  }));
+}
+
+function extractKeywordsFromTitle(title: string) {
+  // Simple keyword extraction from title
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .split(' ')
+    .filter(word => word.length > 3)
+    .slice(0, 5);
 }
 
 // Helper components for beginner-friendly cards
