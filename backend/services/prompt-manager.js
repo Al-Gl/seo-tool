@@ -14,112 +14,208 @@ class PromptManager {
   constructor() {
     this.defaultPrompts = [
       {
-        name: 'seo-technical-analysis',
-        description: 'Comprehensive technical SEO analysis',
-        content: `Analyze the following webpage data for technical SEO issues and provide detailed insights.
+        name: 'seo-technical-implementation',
+        description: 'Concrete technical SEO implementation guide',
+        content: `Provide SPECIFIC, IMPLEMENTABLE technical SEO actions based on the webpage data.
 
-Focus Areas:
-1. **Page Load Performance**: Evaluate loading speed, resource optimization, and Core Web Vitals
-2. **Meta Tags and Structured Data**: Review title tags, meta descriptions, canonical URLs, and schema markup
-3. **HTML Structure and Semantics**: Assess heading hierarchy, semantic HTML usage, and content structure
-4. **Mobile Responsiveness**: Check viewport settings and mobile optimization
-5. **Technical Implementation**: Review robots.txt compliance, SSL usage, and crawlability
+For each technical area, provide EXACT implementation steps:
 
-For each area, provide:
-- Current status and any issues found
-- Specific recommendations for improvement
-- Priority level (High/Medium/Low) for each recommendation
-- Estimated impact on SEO performance
+1. **Meta Tag Optimization**:
+   - Provide exact HTML code for optimal title tags (30-60 chars)
+   - Write specific meta description content (120-160 chars)
+   - Include exact canonical URL implementation
 
-Format your response as structured analysis with clear sections and actionable recommendations.`,
+2. **HTML Structure Fixes**:
+   - Provide exact heading hierarchy corrections (H1, H2, H3 structure)
+   - Include specific HTML5 semantic element implementations
+   - Give exact code for missing structured data/schema markup
+
+3. **Performance Optimizations**:
+   - List specific files to compress/optimize
+   - Provide exact code for implementing lazy loading
+   - Include specific caching headers to implement
+
+4. **Mobile & Technical Implementation**:
+   - Provide exact viewport meta tag if missing
+   - Include specific robots.txt directives needed
+   - Give exact SSL/HTTPS configuration steps
+
+Format each recommendation as:
+- TASK: [Specific action]
+- CODE: [Exact HTML/CSS/config to implement]
+- LOCATION: [Where to make the change]
+- EXPECTED RESULT: [Measurable improvement]
+- TIMEFRAME: [immediate/1-day/1-week]`,
         category: 'technical'
       },
       {
-        name: 'content-quality-review',
-        description: 'Content quality and relevance assessment',
-        content: `Evaluate the content quality and SEO optimization of this webpage.
+        name: 'content-optimization-plan',
+        description: 'Specific content optimization action plan',
+        content: `Provide CONCRETE content optimization actions with exact implementation steps.
 
-Assessment Criteria:
-1. **Content Relevance and Value**: Does the content serve user intent and provide value?
-2. **Keyword Usage and Density**: Analyze keyword integration and natural language usage
-3. **Content Structure and Readability**: Review formatting, readability scores, and user engagement
-4. **Content Depth and Authority**: Assess expertise, authoritativeness, and trustworthiness (E-A-T)
-5. **Content Freshness**: Evaluate if content appears current and up-to-date
+For each content area, provide SPECIFIC changes to make:
 
-For each criterion, provide:
-- Current assessment and score (1-10)
-- Specific content strengths identified
-- Areas for improvement with detailed suggestions
-- Competitor comparison insights where applicable
-- Content optimization recommendations
+1. **Content Length & Depth**:
+   - Specify exact word count targets (e.g., "Increase from 400 to 1200 words")
+   - List specific topics/sections to add
+   - Provide exact paragraph structure improvements
 
-Conclude with a content improvement strategy prioritized by potential impact.`,
+2. **Keyword Optimization**:
+   - Suggest specific keywords to target (with exact placement locations)
+   - Provide exact title tag content with target keywords
+   - Include specific H2/H3 headings with keyword optimization
+
+3. **Content Structure Improvements**:
+   - List exact subheadings to add/modify
+   - Provide specific bullet points or list formats to implement
+   - Include exact internal linking opportunities with anchor text
+
+4. **Content Enhancement Actions**:
+   - Specify exact images/media to add (with alt text)
+   - Provide specific calls-to-action content
+   - Include exact FAQ sections or content blocks to add
+
+5. **E-A-T Improvements**:
+   - List specific author bio/credentials to add
+   - Provide exact citation/reference content
+   - Include specific social proof elements to implement
+
+Format each action as:
+- ACTION: [Specific content change]
+- EXACT CONTENT: [Word-for-word text to add/modify]
+- PLACEMENT: [Exactly where in the content]
+- TARGET METRIC: [Word count, keyword density, etc.]
+- TIMEFRAME: [Content manager can implement in X hours]`,
         category: 'content'
       },
       {
-        name: 'competitive-analysis',
-        description: 'Competitive positioning and opportunity analysis',
-        content: `Perform a competitive analysis based on the webpage content and structure.
+        name: 'competitive-gap-actions',
+        description: 'Specific actions to outrank competitors',
+        content: `Provide ACTIONABLE strategies to improve competitive positioning with specific implementation steps.
 
-Analysis Framework:
-1. **Unique Value Propositions**: Identify what differentiates this content from competitors
-2. **Content Gaps and Opportunities**: Highlight missing topics or content areas
-3. **Technical Advantages/Disadvantages**: Compare technical implementation quality
-4. **User Experience Differentiators**: Assess UX elements that provide competitive advantage
-5. **Market Positioning**: Evaluate how the content positions the brand in the market
+Based on the webpage data, identify and provide CONCRETE actions for:
 
-Deliverables:
-- Competitive strengths and weaknesses analysis
-- Content gap identification with opportunity sizing
-- Technical competitive advantages or areas for improvement
-- Actionable recommendations for competitive differentiation
-- Strategic insights for content and SEO strategy
+1. **Content Gap Opportunities**:
+   - List specific topics/keywords competitors likely rank for that this page misses
+   - Provide exact content sections to add (with word count targets)
+   - Include specific competitor features to replicate or improve upon
 
-Focus on providing actionable intelligence that can inform strategic decisions.`,
+2. **Technical Competitive Advantages**:
+   - Identify specific technical improvements that will outperform competitors
+   - Provide exact performance optimizations to implement
+   - Include specific structured data implementations competitors may lack
+
+3. **User Experience Improvements**:
+   - List specific UX enhancements to implement
+   - Provide exact navigation/layout improvements
+   - Include specific conversion optimization elements to add
+
+4. **Content Differentiation Actions**:
+   - Suggest specific unique content angles to pursue
+   - Provide exact formatting/presentation improvements
+   - Include specific multimedia elements to add
+
+5. **Link Building Opportunities**:
+   - Identify specific pages/content to create for link attraction
+   - Provide exact outreach strategies with templates
+   - Include specific internal linking improvements
+
+Format each recommendation as:
+- COMPETITIVE ACTION: [Specific strategy to outrank competitors]
+- IMPLEMENTATION: [Step-by-step execution plan]
+- RESOURCES NEEDED: [Specific tools, content, or budget required]
+- SUCCESS METRICS: [How to measure competitive improvement]
+- TIMELINE: [Realistic implementation schedule]`,
         category: 'competitive'
       },
       {
-        name: 'user-experience-audit',
-        description: 'User experience and usability assessment',
-        content: `Conduct a comprehensive user experience audit of this webpage.
+        name: 'ux-improvement-actions',
+        description: 'Specific UX improvements to implement',
+        content: `Provide CONCRETE user experience improvements with exact implementation details.
 
-UX Evaluation Areas:
-1. **Navigation and Information Architecture**: Assess ease of finding information
-2. **Content Accessibility**: Review accessibility features and compliance
-3. **Visual Hierarchy and Design**: Evaluate content presentation and visual flow
-4. **Mobile User Experience**: Analyze mobile-specific usability factors
-5. **Conversion Optimization**: Identify barriers to user actions and conversions
+For each UX area, specify EXACT changes to implement:
 
-For each area, provide:
-- Current UX assessment with specific observations
-- Usability issues that impact SEO and user engagement
-- Recommendations for improvement with implementation priority
-- Impact assessment on user behavior and search rankings
-- Best practice recommendations
+1. **Navigation Improvements**:
+   - Provide exact menu structure/navigation elements to add/modify
+   - Include specific breadcrumb implementations
+   - List exact internal linking improvements with anchor text
 
-Conclude with a prioritized UX improvement roadmap that considers both user satisfaction and SEO impact.`,
+2. **Accessibility Fixes**:
+   - Provide exact HTML attributes to add (alt tags, ARIA labels, etc.)
+   - Include specific color contrast adjustments with hex codes
+   - List exact keyboard navigation improvements
+
+3. **Visual Hierarchy Enhancements**:
+   - Specify exact heading structure changes (H1, H2, H3 modifications)
+   - Provide specific font size/weight adjustments
+   - Include exact spacing and layout improvements
+
+4. **Mobile UX Optimizations**:
+   - List specific responsive design fixes to implement
+   - Provide exact touch target size improvements
+   - Include specific mobile navigation enhancements
+
+5. **Conversion Optimization Actions**:
+   - Provide exact call-to-action button text and placement
+   - Include specific form field optimizations
+   - List exact trust signals/social proof to add
+
+6. **Page Speed UX Improvements**:
+   - Specify exact loading optimization techniques
+   - Provide specific image optimization steps
+   - Include exact caching implementations
+
+Format each improvement as:
+- UX ISSUE: [Specific user experience problem]
+- SOLUTION: [Exact implementation to fix it]
+- CODE/CONTENT: [Specific HTML/CSS/text to implement]
+- USER IMPACT: [How this improves user experience]
+- IMPLEMENTATION TIME: [Developer hours needed]`,
         category: 'ux'
       },
       {
-        name: 'local-seo-analysis',
-        description: 'Local SEO optimization assessment',
-        content: `Analyze the webpage for local SEO optimization opportunities.
+        name: 'local-seo-implementation',
+        description: 'Specific local SEO actions to implement',
+        content: `Provide CONCRETE local SEO optimization actions with exact implementation steps.
 
-Local SEO Factors:
-1. **Local Business Information**: Review NAP (Name, Address, Phone) consistency
-2. **Local Schema Markup**: Assess LocalBusiness and other relevant schema implementation
-3. **Location-Based Content**: Evaluate location-specific content and keywords
-4. **Local Link Opportunities**: Identify local citation and link building opportunities
-5. **Google My Business Integration**: Review GMB signals and integration
+For each local SEO area, provide SPECIFIC implementations:
 
-Assessment Output:
-- Local SEO readiness score and current optimization level
-- Missing local SEO elements with implementation guides
-- Local content opportunities and keyword recommendations
-- Citation and local link building strategies
-- Technical local SEO improvements needed
+1. **NAP (Name, Address, Phone) Optimization**:
+   - Provide exact business information formatting to use consistently
+   - Include specific HTML markup for contact information
+   - List exact schema.org LocalBusiness code to implement
 
-Provide actionable recommendations specifically focused on improving local search visibility and rankings.`,
+2. **Location-Based Content Actions**:
+   - Suggest specific location keywords to add (with exact placement)
+   - Provide exact local content sections to create
+   - Include specific city/region mentions to incorporate
+
+3. **Local Schema Markup Implementation**:
+   - Provide complete LocalBusiness schema code to add
+   - Include specific service area markup if applicable
+   - List exact review/rating schema implementations
+
+4. **Google My Business Optimization**:
+   - List specific GMB profile sections to optimize
+   - Provide exact business description content
+   - Include specific post categories and content ideas
+
+5. **Local Citation Building**:
+   - Identify specific local directories to submit to
+   - Provide exact NAP format for consistency
+   - List specific local business categories to target
+
+6. **Local Link Building Actions**:
+   - Suggest specific local organizations/events to engage with
+   - Provide exact outreach templates for local partnerships
+   - Include specific local content ideas for link attraction
+
+Format each action as:
+- LOCAL SEO TASK: [Specific local optimization action]
+- IMPLEMENTATION: [Exact code/content/steps to execute]
+- LOCATION: [Where to make the changes]
+- LOCAL IMPACT: [How this improves local search visibility]
+- COMPLETION TIME: [Time needed to implement]`,
         category: 'local'
       }
     ];

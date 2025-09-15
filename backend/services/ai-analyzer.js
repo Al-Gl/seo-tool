@@ -167,41 +167,57 @@ class AIAnalyzer {
    */
   async generateComprehensiveAnalysis(data) {
     const analysisPrompt = `
-Based EXCLUSIVELY on the 'Webpage Data' provided below, perform a comprehensive SEO analysis. Do not use any prior knowledge. Your entire analysis must be derived from the provided data. Provide detailed insights in JSON format with the following structure:
+Based EXCLUSIVELY on the 'Webpage Data' provided below, provide CONCRETE, ACTIONABLE SEO guidance. For each recommendation, provide specific implementation steps, exact code snippets where applicable, and measurable targets. Focus on WHAT TO DO rather than what's wrong. Provide detailed guidance in JSON format:
 
 {
   "technicalSEO": {
     "score": 0-100,
-    "issues": [],
-    "recommendations": []
+    "actions": [
+      {
+        "task": "Specific action to take",
+        "implementation": "Exact steps or code to implement",
+        "priority": "high|medium|low",
+        "timeframe": "immediate|1-week|1-month",
+        "impact": "Expected SEO improvement"
+      }
+    ]
   },
-  "contentQuality": {
+  "contentOptimization": {
     "score": 0-100,
-    "strengths": [],
-    "weaknesses": [],
-    "recommendations": []
+    "actions": [
+      {
+        "task": "Specific content change needed",
+        "implementation": "Exact text/structure to modify",
+        "targetMetric": "Specific goal (e.g., 'increase word count to 1500 words')",
+        "priority": "high|medium|low"
+      }
+    ]
   },
-  "userExperience": {
+  "performanceImprovements": {
     "score": 0-100,
-    "issues": [],
-    "recommendations": []
+    "actions": [
+      {
+        "task": "Performance optimization needed",
+        "implementation": "Technical steps to implement",
+        "expectedGain": "Specific improvement (e.g., 'reduce load time by 2s')",
+        "priority": "high|medium|low"
+      }
+    ]
   },
-  "mobileOptimization": {
+  "accessibilityFixes": {
     "score": 0-100,
-    "issues": [],
-    "recommendations": []
-  },
-  "performance": {
-    "score": 0-100,
-    "metrics": {},
-    "recommendations": []
-  },
-  "accessibility": {
-    "score": 0-100,
-    "issues": [],
-    "recommendations": []
+    "actions": [
+      {
+        "task": "Accessibility improvement needed",
+        "implementation": "Exact HTML/attribute changes",
+        "standard": "WCAG guideline addressed",
+        "priority": "high|medium|low"
+      }
+    ]
   }
 }
+
+IMPORTANT: Each "implementation" field must contain specific, actionable instructions that a developer can immediately execute. Include exact HTML tags, CSS properties, meta tag content, or configuration changes where relevant.
 
 Webpage Data:
 ${JSON.stringify(data, null, 2)}
@@ -242,14 +258,27 @@ ${JSON.stringify(data, null, 2)}
    */
   async generateSummary(crawlData, analysis) {
     const summaryPrompt = `
-Based ONLY on the provided SEO analysis results, provide a concise executive summary (2-3 paragraphs) that:
+Based ONLY on the provided SEO analysis results, create a CONCRETE ACTION PLAN executive summary that:
 
-1. Highlights the overall SEO health of the webpage based on the scores provided.
-2. Identifies the top 3 most critical issues found in the analysis data.
-3. Mentions key strengths and opportunities derived directly from the data.
-4. Provides an overall recommendation priority.
+1. Lists the top 3 IMMEDIATE ACTIONS to take (with specific implementation details)
+2. Provides the next 3 HIGH-IMPACT actions for the following week
+3. Specifies exact measurable outcomes expected from these changes
+4. Gives a clear implementation timeline with priorities
 
-Keep it business-focused and actionable for decision-makers. Do not invent information not present in the analysis.
+Format as an actionable business plan, not an analysis report. Focus on WHAT TO DO and WHEN TO DO IT.
+
+Example format:
+"IMMEDIATE ACTIONS (This Week):
+1. [Specific action with exact implementation steps]
+2. [Specific action with exact implementation steps]
+3. [Specific action with exact implementation steps]
+
+HIGH-IMPACT ACTIONS (Next 2 Weeks):
+1. [Specific action with expected outcome]
+2. [Specific action with expected outcome]
+3. [Specific action with expected outcome]
+
+EXPECTED RESULTS: [Specific measurable improvements]"
 
 URL: ${crawlData.url}
 Analysis Results: ${JSON.stringify(analysis, null, 2)}
@@ -278,18 +307,27 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    */
   async generateRecommendations(crawlData, analysis) {
     const recommendationsPrompt = `
-Based ONLY on the following SEO analysis results, provide 5-10 prioritized recommendations. Each recommendation must directly address an issue found in the data. Provide the response in JSON format:
+Based ONLY on the following SEO analysis results, provide 5-10 CONCRETE, IMPLEMENTABLE recommendations. Each recommendation must include step-by-step instructions that a developer or content manager can immediately execute. Provide the response in JSON format:
 
 [
   {
     "priority": "high|medium|low",
-    "category": "technical|content|ux|performance|accessibility",
-    "title": "Brief title of the recommendation",
-    "description": "Detailed description of what to do",
-    "impact": "Expected impact of this specific fix",
-    "effort": "low|medium|high"
+    "category": "technical|content|performance|accessibility",
+    "title": "Specific action to implement",
+    "description": "STEP-BY-STEP implementation instructions with exact code, text, or configurations",
+    "implementation": {
+      "steps": ["Step 1: Exact action", "Step 2: Exact action", "Step 3: Exact action"],
+      "code": "Exact HTML/CSS/JS code to add or modify (if applicable)",
+      "location": "Where exactly to make the change"
+    },
+    "expectedOutcome": "Specific, measurable result expected",
+    "timeframe": "immediate|1-day|1-week|1-month",
+    "effort": "low|medium|high",
+    "tools": ["Specific tools or resources needed"]
   }
 ]
+
+IMPORTANT: The "description" and "implementation.steps" must be so detailed that someone can execute them without additional research. Include exact values, specific locations, and concrete examples.
 
 Analysis Results: ${JSON.stringify(analysis, null, 2)}
 `;
