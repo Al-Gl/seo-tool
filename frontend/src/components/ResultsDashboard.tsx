@@ -4,6 +4,7 @@ import {
   Download,
   Share2,
   AlertTriangle,
+  AlertCircle,
   CheckCircle,
   TrendingUp,
   Clock,
@@ -15,7 +16,8 @@ import {
   Code,
   Accessibility,
   HelpCircle,
-  ExternalLink
+  ExternalLink,
+  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
