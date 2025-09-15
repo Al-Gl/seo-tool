@@ -601,70 +601,248 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    */
   parseRecommendationsResponse(response) {
     if (!response || typeof response !== 'string') {
+      console.log('Invalid response type:', typeof response);
       return null;
     }
 
-    // Method 1: Extract JSON array with improved regex
-    const jsonArrayMatches = [
-      /\[[\s\S]*?\]/g,                    // Standard array
-      /```json\s*(\[[\s\S]*?\])\s*```/g,  // Markdown code blocks
-      /```\s*(\[[\s\S]*?\])\s*```/g       // Generic code blocks
+    console.log('Parsing AI response, length:', response.length);
+
+    // Method 1: Extract from markdown code blocks with better patterns
+    const markdownExtractions = this.extractFromMarkdownCodeBlocks(response);
+    if (markdownExtractions) {
+      console.log('Successfully extracted from markdown code blocks');
+      return markdownExtractions;
+    }
+
+    // Method 2: Extract complete JSON arrays (greedy matching)
+    const arrayExtractions = this.extractCompleteJsonArrays(response);
+    if (arrayExtractions) {
+      console.log('Successfully extracted complete JSON arrays');
+      return arrayExtractions;
+    }
+
+    // Method 3: Partial JSON recovery for truncated responses
+    const partialExtractions = this.extractPartialJsonRecommendations(response);
+    if (partialExtractions) {
+      console.log('Successfully recovered from partial JSON');
+      return partialExtractions;
+    }
+
+    // Method 4: Advanced line-by-line parsing
+    const structuredExtractions = this.extractStructuredJsonByLines(response);
+    if (structuredExtractions) {
+      console.log('Successfully extracted via line-by-line parsing');
+      return structuredExtractions;
+    }
+
+    console.log('All JSON extraction methods failed');
+    return null;
+  }
+
+  /**
+   * Extract JSON from markdown code blocks with improved patterns
+   */
+  extractFromMarkdownCodeBlocks(response) {
+    // More comprehensive markdown patterns
+    const patterns = [
+      /```json\s*([\s\S]*?)\s*```/gi,      // Standard json blocks
+      /```\s*([\s\S]*?)\s*```/gi,          // Generic code blocks
+      /`([\s\S]*?)`/gi                     // Inline code
     ];
 
-    for (const regex of jsonArrayMatches) {
-      const matches = response.match(regex);
+    for (const pattern of patterns) {
+      const matches = [...response.matchAll(pattern)];
+      for (const match of matches) {
+        try {
+          const content = match[1].trim();
+          if (content.startsWith('[') && content.includes('{')) {
+            // Try to fix common JSON issues
+            const cleanedJson = this.cleanJsonContent(content);
+            const parsed = JSON.parse(cleanedJson);
+
+            if (Array.isArray(parsed) && this.validateRecommendationsStructure(parsed)) {
+              return parsed;
+            }
+          }
+        } catch (error) {
+          console.log('Markdown extraction failed:', error.message);
+          continue;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Extract complete JSON arrays with greedy matching
+   */
+  extractCompleteJsonArrays(response) {
+    // Greedy patterns for complete arrays
+    const patterns = [
+      /\[[\s\S]*\]/g,                      // Greedy array matching
+      /\[[\s\S]*?\](?=\s*$)/g,            // Array to end of string
+      /\[[\s\S]*?\](?=\s*\n\s*[^,\{\[])/g // Array followed by non-JSON content
+    ];
+
+    for (const pattern of patterns) {
+      const matches = response.match(pattern);
       if (matches) {
-        for (const match of matches) {
+        // Try the largest match first (most likely to be complete)
+        const sortedMatches = matches.sort((a, b) => b.length - a.length);
+
+        for (const match of sortedMatches) {
           try {
-            const cleanJson = match.replace(/```json|```/g, '').trim();
-            const parsed = JSON.parse(cleanJson);
+            const cleaned = this.cleanJsonContent(match);
+            const parsed = JSON.parse(cleaned);
+
             if (Array.isArray(parsed) && this.validateRecommendationsStructure(parsed)) {
               return parsed;
             }
           } catch (error) {
-            console.log('JSON parse attempt failed:', error.message);
             continue;
           }
         }
       }
     }
+    return null;
+  }
 
-    // Method 2: Try to extract and clean potential JSON
+  /**
+   * Extract partial JSON recommendations from truncated responses
+   */
+  extractPartialJsonRecommendations(response) {
+    // Find the start of JSON array
+    const arrayStart = response.indexOf('[');
+    if (arrayStart === -1) return null;
+
+    // Extract everything from array start
+    const jsonPortion = response.substring(arrayStart);
+
+    // Try to extract complete recommendation objects even if array is incomplete
+    const recommendations = [];
+    let currentObject = '';
+    let braceCount = 0;
+    let inString = false;
+    let inObject = false;
+
+    for (let i = 0; i < jsonPortion.length; i++) {
+      const char = jsonPortion[i];
+
+      if (char === '"' && (i === 0 || jsonPortion[i-1] !== '\\')) {
+        inString = !inString;
+      }
+
+      if (!inString) {
+        if (char === '{') {
+          if (!inObject) {
+            inObject = true;
+            currentObject = '';
+          }
+          braceCount++;
+        } else if (char === '}') {
+          braceCount--;
+        }
+      }
+
+      if (inObject) {
+        currentObject += char;
+
+        // Complete object found
+        if (braceCount === 0 && char === '}') {
+          try {
+            const parsed = JSON.parse(currentObject);
+            if (this.validateSingleRecommendation(parsed)) {
+              recommendations.push(parsed);
+            }
+          } catch (error) {
+            console.log('Failed to parse individual recommendation:', error.message);
+          }
+          inObject = false;
+          currentObject = '';
+        }
+      }
+    }
+
+    return recommendations.length > 0 ? recommendations : null;
+  }
+
+  /**
+   * Extract structured JSON by analyzing lines
+   */
+  extractStructuredJsonByLines(response) {
     const lines = response.split('\n');
     let jsonStart = -1;
     let jsonEnd = -1;
     let bracketCount = 0;
+    let braceCount = 0;
 
+    // Find JSON boundaries more accurately
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
+
       if (line.startsWith('[') && jsonStart === -1) {
         jsonStart = i;
-        bracketCount = 1;
-      } else if (jsonStart !== -1) {
+      }
+
+      if (jsonStart !== -1) {
+        // Count brackets and braces more carefully
         for (const char of line) {
           if (char === '[') bracketCount++;
           if (char === ']') bracketCount--;
+          if (char === '{') braceCount++;
+          if (char === '}') braceCount--;
         }
-        if (bracketCount === 0) {
+
+        // Found complete JSON structure
+        if (bracketCount === 0 && braceCount === 0 && line.includes(']')) {
           jsonEnd = i;
           break;
         }
       }
+
+      // If we seem to have left JSON territory, stop here
+      if (jsonStart !== -1 && line.length > 0 && !line.match(/[\[\]{}",:\s]/)) {
+        break;
+      }
     }
 
-    if (jsonStart !== -1 && jsonEnd !== -1) {
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
       try {
         const jsonText = lines.slice(jsonStart, jsonEnd + 1).join('\n');
-        const parsed = JSON.parse(jsonText);
+        const cleaned = this.cleanJsonContent(jsonText);
+        const parsed = JSON.parse(cleaned);
+
         if (Array.isArray(parsed) && this.validateRecommendationsStructure(parsed)) {
           return parsed;
         }
       } catch (error) {
-        console.log('Structured JSON extraction failed:', error.message);
+        console.log('Line-by-line extraction failed:', error.message);
       }
     }
 
     return null;
+  }
+
+  /**
+   * Clean JSON content to fix common issues
+   */
+  cleanJsonContent(content) {
+    return content
+      .replace(/```json|```/g, '')                    // Remove markdown
+      .replace(/\n\s*\n/g, '\n')                      // Remove empty lines
+      .replace(/,(\s*[}\]])/g, '$1')                  // Remove trailing commas
+      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')         // Quote unquoted keys
+      .trim();
+  }
+
+  /**
+   * Validate a single recommendation object
+   */
+  validateSingleRecommendation(rec) {
+    return rec &&
+           rec.title &&
+           (rec.difficulty || rec.priority) &&
+           (rec.whyItMatters || rec.description);
   }
 
   /**
@@ -703,20 +881,32 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    * @returns {Array} Structured recommendation array
    */
   createFallbackRecommendation(rawResponse) {
-    // Try to extract key information from the raw text
-    const lines = rawResponse.split('\n').filter(line => line.trim());
-    const recommendations = [];
+    console.log('Creating fallback recommendations from raw response');
 
-    // Look for obvious recommendation patterns
-    const recommendationSections = this.extractRecommendationSections(rawResponse);
+    // Method 1: Try to extract partial JSON objects from text
+    const partialJsonRecs = this.extractPartialJsonFromText(rawResponse);
+    if (partialJsonRecs.length > 0) {
+      console.log('Extracted', partialJsonRecs.length, 'recommendations from partial JSON');
+      return partialJsonRecs;
+    }
 
-    if (recommendationSections.length > 0) {
-      return recommendationSections.map((section, index) => ({
+    // Method 2: Parse structured text patterns
+    const structuredRecs = this.extractStructuredRecommendations(rawResponse);
+    if (structuredRecs.length > 0) {
+      console.log('Extracted', structuredRecs.length, 'recommendations from structured text');
+      return structuredRecs;
+    }
+
+    // Method 3: Look for obvious recommendation patterns
+    const patternRecs = this.extractRecommendationSections(rawResponse);
+    if (patternRecs.length > 0) {
+      console.log('Extracted', patternRecs.length, 'recommendations from text patterns');
+      return patternRecs.map((section, index) => ({
         difficulty: 'intermediate',
         priority: 'medium',
         category: 'general',
         title: section.title || `Recommendation ${index + 1}`,
-        whyItMatters: section.why || 'This improvement will help your website\'s SEO performance.',
+        whyItMatters: section.why || section.description || 'This improvement will help your website\'s SEO performance.',
         beginnerGuide: {
           whatToDo: section.howTo || section.description || 'Please review the detailed analysis for specific steps.',
           whereToFind: 'Check your website\'s admin panel or content management system.',
@@ -733,7 +923,8 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       }));
     }
 
-    // Last resort: create a single recommendation with the raw text
+    // Last resort: create a single recommendation with cleaned text
+    console.log('Creating single fallback recommendation');
     return [{
       difficulty: 'intermediate',
       priority: 'high',
@@ -754,6 +945,234 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       impact: 'high',
       effort: 'low'
     }];
+  }
+
+  /**
+   * Extract partial JSON objects from malformed text
+   */
+  extractPartialJsonFromText(text) {
+    const recommendations = [];
+
+    // Look for JSON-like structures with quoted keys
+    const patterns = [
+      /"difficulty":\s*"([^"]+)"[\s\S]*?"title":\s*"([^"]+)"[\s\S]*?"whyItMatters":\s*"([^"]*?)"/g,
+      /"title":\s*"([^"]+)"[\s\S]*?"difficulty":\s*"([^"]+)"[\s\S]*?"whyItMatters":\s*"([^"]*?)"/g
+    ];
+
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        try {
+          // Extract the full object text around this match
+          const objectText = this.extractObjectAroundMatch(text, match.index);
+          const parsedRec = this.parsePartialJsonObject(objectText);
+
+          if (parsedRec && this.validateSingleRecommendation(parsedRec)) {
+            recommendations.push(parsedRec);
+          }
+        } catch (error) {
+          console.log('Failed to extract partial JSON object:', error.message);
+        }
+      }
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Extract full object text around a regex match
+   */
+  extractObjectAroundMatch(text, matchIndex) {
+    // Find the start of object (look backwards for {)
+    let start = matchIndex;
+    while (start > 0 && text[start] !== '{') {
+      start--;
+    }
+
+    // Find the end of object (look forwards for })
+    let end = matchIndex;
+    let braceCount = 0;
+    let inString = false;
+
+    for (let i = start; i < text.length; i++) {
+      const char = text[i];
+
+      if (char === '"' && (i === 0 || text[i-1] !== '\\')) {
+        inString = !inString;
+      }
+
+      if (!inString) {
+        if (char === '{') braceCount++;
+        if (char === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            end = i + 1;
+            break;
+          }
+        }
+      }
+    }
+
+    return text.substring(start, end);
+  }
+
+  /**
+   * Parse a partial JSON object with error recovery
+   */
+  parsePartialJsonObject(objectText) {
+    try {
+      // Try direct parsing first
+      return JSON.parse(objectText);
+    } catch (error) {
+      // Try to fix common issues and parse again
+      try {
+        const cleaned = this.cleanJsonContent(objectText);
+        return JSON.parse(cleaned);
+      } catch (secondError) {
+        // Extract key-value pairs manually
+        return this.extractKeyValuePairs(objectText);
+      }
+    }
+  }
+
+  /**
+   * Extract key-value pairs manually from malformed JSON-like text
+   */
+  extractKeyValuePairs(text) {
+    const obj = {};
+
+    // Common patterns for key-value extraction
+    const patterns = [
+      /"(\w+)":\s*"([^"]*?)"/g,          // "key": "value"
+      /"(\w+)":\s*(\w+)/g,               // "key": value
+      /(\w+):\s*"([^"]*?)"/g             // key: "value"
+    ];
+
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const key = match[1];
+        const value = match[2];
+
+        if (!obj[key]) { // Don't overwrite existing values
+          obj[key] = value;
+        }
+      }
+    }
+
+    // Create a valid recommendation structure
+    return {
+      difficulty: obj.difficulty || 'intermediate',
+      priority: obj.priority || 'medium',
+      category: obj.category || 'general',
+      title: obj.title || 'SEO Improvement',
+      whyItMatters: obj.whyItMatters || obj.description || 'This will improve your SEO.',
+      beginnerGuide: {
+        whatToDo: obj.whatToDo || 'Follow the implementation steps.',
+        whereToFind: obj.whereToFind || 'Check your website settings.',
+        timeNeeded: obj.timeNeeded || '30 minutes',
+        helpfulTips: obj.helpfulTips || 'Test your changes carefully.'
+      },
+      technicalDetails: {
+        implementation: obj.implementation || obj.code || 'See technical guidance.',
+        testingSteps: obj.testingSteps || 'Verify the changes work correctly.'
+      },
+      expectedOutcome: obj.expectedOutcome || 'Improved SEO performance.',
+      impact: obj.impact || 'medium',
+      effort: obj.effort || 'medium'
+    };
+  }
+
+  /**
+   * Extract structured recommendations from readable text
+   */
+  extractStructuredRecommendations(text) {
+    const recommendations = [];
+
+    // Split text into logical sections
+    const sections = text.split(/\n\s*\n|\n(?=\d+\.|\-|\*)/);
+
+    for (const section of sections) {
+      if (section.trim().length < 50) continue; // Skip very short sections
+
+      const rec = this.parseTextSection(section);
+      if (rec && rec.title) {
+        recommendations.push(rec);
+      }
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Parse a text section into a recommendation object
+   */
+  parseTextSection(section) {
+    const lines = section.split('\n').map(line => line.trim()).filter(line => line);
+
+    if (lines.length === 0) return null;
+
+    // Extract title (usually the first substantial line)
+    const title = lines[0].replace(/^\d+\.\s*|\-\s*|\*\s*/, '').trim();
+
+    // Look for specific information patterns
+    const whyMatters = this.extractAfterPattern(section, /(why|matter|important|benefit)/i);
+    const howTo = this.extractAfterPattern(section, /(how|step|implement|fix|do)/i);
+    const code = this.extractCodeBlock(section);
+
+    return {
+      difficulty: 'intermediate',
+      priority: 'medium',
+      category: 'general',
+      title: title.substring(0, 100),
+      whyItMatters: whyMatters || 'This improvement will help your website\'s SEO.',
+      beginnerGuide: {
+        whatToDo: howTo || 'Follow the implementation guidance provided.',
+        whereToFind: 'Check your website\'s admin panel or HTML code.',
+        timeNeeded: '30-60 minutes',
+        helpfulTips: 'Make a backup before making changes.'
+      },
+      technicalDetails: {
+        implementation: howTo || 'See the detailed guidance above.',
+        code: code,
+        testingSteps: 'Test your changes and verify they work correctly.'
+      },
+      expectedOutcome: 'Improved SEO performance and user experience.',
+      impact: 'medium',
+      effort: 'medium'
+    };
+  }
+
+  /**
+   * Extract text after a pattern match
+   */
+  extractAfterPattern(text, pattern) {
+    const match = text.match(pattern);
+    if (match) {
+      const afterMatch = text.substring(match.index + match[0].length);
+      const firstSentence = afterMatch.split(/[.!?]/)[0];
+      return firstSentence.trim().substring(0, 300);
+    }
+    return null;
+  }
+
+  /**
+   * Extract code blocks from text
+   */
+  extractCodeBlock(text) {
+    const codePatterns = [
+      /```[\s\S]*?```/g,
+      /`[^`]+`/g,
+      /<[^>]+>/g
+    ];
+
+    for (const pattern of codePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[0].replace(/```|`/g, '').trim();
+      }
+    }
+    return null;
   }
 
   /**
