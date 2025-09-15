@@ -390,25 +390,17 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       });
 
       const response = result.response.text();
-      
-      // Try to parse JSON response
-      try {
-        const jsonMatch = response.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          return JSON.parse(jsonMatch[0]);
-        }
-      } catch (parseError) {
-        console.warn('Could not parse JSON from recommendations, returning raw text');
+
+      // Enhanced JSON parsing with multiple extraction methods
+      const parsedRecommendations = this.parseRecommendationsResponse(response);
+      if (parsedRecommendations) {
+        console.log(`Successfully parsed ${parsedRecommendations.length} recommendations`);
+        return parsedRecommendations;
       }
-      
-      return [{ 
-        priority: 'high', 
-        category: 'general', 
-        title: 'Review Analysis Results',
-        description: response,
-        impact: 'Review detailed analysis for specific recommendations',
-        effort: 'low'
-      }];
+
+      // Fallback: create properly structured recommendation from raw text
+      console.warn('Could not parse JSON from recommendations, creating structured fallback');
+      return this.createFallbackRecommendation(response);
 
     } catch (error) {
       console.error('Recommendations generation failed:', error);
@@ -600,6 +592,235 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
     };
 
     return languages[languageCode] || 'English';
+  }
+
+  /**
+   * Enhanced JSON parsing for AI recommendations with multiple extraction methods
+   * @param {string} response - Raw AI response text
+   * @returns {Array|null} Parsed recommendations or null if parsing fails
+   */
+  parseRecommendationsResponse(response) {
+    if (!response || typeof response !== 'string') {
+      return null;
+    }
+
+    // Method 1: Extract JSON array with improved regex
+    const jsonArrayMatches = [
+      /\[[\s\S]*?\]/g,                    // Standard array
+      /```json\s*(\[[\s\S]*?\])\s*```/g,  // Markdown code blocks
+      /```\s*(\[[\s\S]*?\])\s*```/g       // Generic code blocks
+    ];
+
+    for (const regex of jsonArrayMatches) {
+      const matches = response.match(regex);
+      if (matches) {
+        for (const match of matches) {
+          try {
+            const cleanJson = match.replace(/```json|```/g, '').trim();
+            const parsed = JSON.parse(cleanJson);
+            if (Array.isArray(parsed) && this.validateRecommendationsStructure(parsed)) {
+              return parsed;
+            }
+          } catch (error) {
+            console.log('JSON parse attempt failed:', error.message);
+            continue;
+          }
+        }
+      }
+    }
+
+    // Method 2: Try to extract and clean potential JSON
+    const lines = response.split('\n');
+    let jsonStart = -1;
+    let jsonEnd = -1;
+    let bracketCount = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith('[') && jsonStart === -1) {
+        jsonStart = i;
+        bracketCount = 1;
+      } else if (jsonStart !== -1) {
+        for (const char of line) {
+          if (char === '[') bracketCount++;
+          if (char === ']') bracketCount--;
+        }
+        if (bracketCount === 0) {
+          jsonEnd = i;
+          break;
+        }
+      }
+    }
+
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      try {
+        const jsonText = lines.slice(jsonStart, jsonEnd + 1).join('\n');
+        const parsed = JSON.parse(jsonText);
+        if (Array.isArray(parsed) && this.validateRecommendationsStructure(parsed)) {
+          return parsed;
+        }
+      } catch (error) {
+        console.log('Structured JSON extraction failed:', error.message);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Validate the structure of parsed recommendations
+   * @param {Array} recommendations - Parsed recommendations array
+   * @returns {boolean} True if structure is valid
+   */
+  validateRecommendationsStructure(recommendations) {
+    if (!Array.isArray(recommendations) || recommendations.length === 0) {
+      return false;
+    }
+
+    // Check if it's the new beginner-friendly format or legacy format
+    const firstRec = recommendations[0];
+
+    // New format validation
+    if (firstRec.difficulty && firstRec.whyItMatters && firstRec.beginnerGuide) {
+      return recommendations.every(rec =>
+        rec.title &&
+        rec.whyItMatters &&
+        (rec.difficulty === 'beginner' || rec.difficulty === 'intermediate' || rec.difficulty === 'advanced')
+      );
+    }
+
+    // Legacy format validation
+    if (firstRec.title && (firstRec.description || firstRec.implementation)) {
+      return recommendations.every(rec => rec.title);
+    }
+
+    return false;
+  }
+
+  /**
+   * Create a properly structured fallback recommendation from raw text
+   * @param {string} rawResponse - Raw AI response
+   * @returns {Array} Structured recommendation array
+   */
+  createFallbackRecommendation(rawResponse) {
+    // Try to extract key information from the raw text
+    const lines = rawResponse.split('\n').filter(line => line.trim());
+    const recommendations = [];
+
+    // Look for obvious recommendation patterns
+    const recommendationSections = this.extractRecommendationSections(rawResponse);
+
+    if (recommendationSections.length > 0) {
+      return recommendationSections.map((section, index) => ({
+        difficulty: 'intermediate',
+        priority: 'medium',
+        category: 'general',
+        title: section.title || `Recommendation ${index + 1}`,
+        whyItMatters: section.why || 'This improvement will help your website\'s SEO performance.',
+        beginnerGuide: {
+          whatToDo: section.howTo || section.description || 'Please review the detailed analysis for specific steps.',
+          whereToFind: 'Check your website\'s admin panel or content management system.',
+          timeNeeded: '30-60 minutes',
+          helpfulTips: 'Make sure to backup your website before making changes.'
+        },
+        technicalDetails: {
+          implementation: section.technical || 'Consult with a developer if needed.',
+          testingSteps: 'Test your changes and verify they work correctly.'
+        },
+        expectedOutcome: 'Improved SEO performance and user experience.',
+        impact: 'medium',
+        effort: 'medium'
+      }));
+    }
+
+    // Last resort: create a single recommendation with the raw text
+    return [{
+      difficulty: 'intermediate',
+      priority: 'high',
+      category: 'general',
+      title: 'Review SEO Analysis Results',
+      whyItMatters: 'The AI analysis contains important insights for improving your website\'s SEO.',
+      beginnerGuide: {
+        whatToDo: 'Please review the detailed analysis provided below for specific recommendations.',
+        whereToFind: 'The full analysis is contained in the technical details section.',
+        timeNeeded: '15-30 minutes to review',
+        helpfulTips: 'Focus on the highest priority items first.'
+      },
+      technicalDetails: {
+        implementation: this.cleanRawResponse(rawResponse),
+        testingSteps: 'Implement recommendations gradually and test each change.'
+      },
+      expectedOutcome: 'Better understanding of your website\'s SEO opportunities.',
+      impact: 'high',
+      effort: 'low'
+    }];
+  }
+
+  /**
+   * Extract recommendation sections from raw text
+   * @param {string} text - Raw response text
+   * @returns {Array} Array of extracted recommendation sections
+   */
+  extractRecommendationSections(text) {
+    const sections = [];
+    const lines = text.split('\n');
+
+    // Look for numbered lists, bullet points, or clear recommendation patterns
+    const patterns = [
+      /^\d+\.\s*(.+)/,           // 1. Recommendation
+      /^[-*]\s*(.+)/,            // - Recommendation or * Recommendation
+      /^[A-Z][^.]*:\s*(.+)/,     // Title: Description
+      /(?:recommendation|suggest|improve|fix|add|update|optimize):\s*(.+)/i
+    ];
+
+    let currentSection = null;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      // Check if this line starts a new recommendation
+      const patternMatch = patterns.find(pattern => pattern.test(trimmed));
+      if (patternMatch) {
+        if (currentSection) {
+          sections.push(currentSection);
+        }
+        currentSection = {
+          title: trimmed.replace(patternMatch, '$1').substring(0, 100),
+          description: '',
+          lines: [trimmed]
+        };
+      } else if (currentSection) {
+        currentSection.lines.push(trimmed);
+        if (trimmed.length > 20) {
+          currentSection.description += ' ' + trimmed;
+        }
+      }
+    }
+
+    if (currentSection) {
+      sections.push(currentSection);
+    }
+
+    return sections.map(section => ({
+      title: section.title,
+      description: section.description.trim(),
+      howTo: section.description.substring(0, 300),
+      technical: section.lines.join('\n')
+    }));
+  }
+
+  /**
+   * Clean raw AI response for better display
+   * @param {string} rawResponse - Raw response text
+   * @returns {string} Cleaned response
+   */
+  cleanRawResponse(rawResponse) {
+    return rawResponse
+      .replace(/```json|```/g, '')
+      .replace(/\n\s*\n/g, '\n')
+      .trim()
+      .substring(0, 2000); // Limit length for display
   }
 
   /**

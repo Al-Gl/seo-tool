@@ -45,6 +45,7 @@ import {
 } from '@/lib/utils';
 import { reportApi } from '@/lib/api';
 import { processAnalysisData, getScoreWeightingTooltip } from '@/lib/analysisProcessor';
+import { BeginnerRecommendationCard, LegacyRecommendationCard } from './RecommendationCards';
 
 interface ResultsDashboardProps {
   results: AnalysisResponse; // The prop is the full analysis response
@@ -124,6 +125,15 @@ export function ResultsDashboard({
   // Get beginner-friendly analysis if available
   const beginnerAnalysis = seoAnalysis.comprehensiveAnalysis as BeginnerAnalysisResult;
   const beginnerRecommendations = seoAnalysis.recommendations as BeginnerRecommendation[];
+
+  // Utility function to detect recommendation format
+  const isBeginnerRecommendation = (rec: any): rec is BeginnerRecommendation => {
+    return rec && rec.difficulty && rec.whyItMatters && rec.beginnerGuide;
+  };
+
+  const isLegacyRecommendation = (rec: any) => {
+    return rec && rec.title && (rec.description || rec.implementation);
+  };
 
   const detailTabs: TabItem[] = [
     // New beginner-friendly tab first
@@ -247,24 +257,32 @@ export function ResultsDashboard({
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Recommendations</h3>
                 <div className="space-y-4">
-                  {displayedRecommendations.map((recommendation, index) => recommendation && (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-medium text-gray-900">{recommendation.title}</h4>
-                            <span className={`
-                              inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                              ${getPriorityColor(recommendation.priority)}
-                            `}>
-                              {capitalize(recommendation.priority)} Priority
-                            </span>
+                  {displayedRecommendations.map((recommendation, index) => {
+                    if (!recommendation) return null;
+
+                    // Render based on recommendation format
+                    if (isBeginnerRecommendation(recommendation)) {
+                      return <BeginnerRecommendationCard key={index} recommendation={recommendation} />;
+                    } else if (isLegacyRecommendation(recommendation)) {
+                      return <LegacyRecommendationCard key={index} recommendation={recommendation} />;
+                    } else {
+                      // Fallback for malformed data
+                      return (
+                        <div key={index} className="border border-red-200 rounded-lg p-4 bg-red-50">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <AlertTriangle className="w-5 h-5 text-red-600" />
+                            <h4 className="font-medium text-red-900">Data Format Issue</h4>
                           </div>
-                          <p className="text-sm text-gray-600">{recommendation.description}</p>
+                          <p className="text-red-800 text-sm">
+                            This recommendation couldn't be displayed properly. Raw data:
+                          </p>
+                          <pre className="mt-2 bg-white border border-red-200 rounded p-2 text-xs overflow-x-auto">
+                            {JSON.stringify(recommendation, null, 2)}
+                          </pre>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    }
+                  })}
                 </div>
               </div>
             )}
