@@ -33,9 +33,9 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label 
+          <label
             htmlFor={selectId}
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-white mb-2"
           >
             {label}
           </label>
@@ -44,7 +44,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             id={selectId}
             className={cn(
-              "block w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 appearance-none",
+              "block w-full px-4 py-3 pr-10 border border-space-600 bg-space-800/50 backdrop-blur-sm rounded-lg shadow-soft text-white focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:bg-space-800/70 transition-all duration-300 hover:border-space-500 appearance-none",
               error && "border-danger-500 focus:ring-danger-500 focus:border-danger-500",
               className
             )}
@@ -66,12 +66,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300 pointer-events-none" />
         </div>
         {helperText && (
           <p className={cn(
             "mt-2 text-sm",
-            error ? "text-danger-600" : "text-gray-500"
+            error ? "text-danger-400" : "text-gray-300"
           )}>
             {helperText}
           </p>

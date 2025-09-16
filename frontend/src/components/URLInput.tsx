@@ -90,16 +90,16 @@ export function URLInput({ onSubmit, isLoading = false }: URLInputProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto bg-space-800/30 backdrop-blur-md border border-space-600/50 shadow-2xl">
       <CardContent className="space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-100 rounded-full mb-4">
-            <Search className="w-6 h-6 text-primary-600" />
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-accent-500/20 backdrop-blur-sm rounded-full mb-4 border border-accent-400/30">
+            <Search className="w-6 h-6 text-accent-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-white">
             Analyze Your Website
           </h2>
-          <p className="text-gray-500">
+          <p className="text-gray-300">
             Enter your website URL and choose your analysis type to get started
           </p>
         </div>
@@ -117,7 +117,7 @@ export function URLInput({ onSubmit, isLoading = false }: URLInputProps) {
               disabled={isLoading}
               className="text-lg"
             />
-            <div className="flex items-center mt-2 text-sm text-gray-500">
+            <div className="flex items-center mt-2 text-sm text-gray-300">
               <Globe className="w-4 h-4 mr-1" />
               <span>Enter the full URL including https://</span>
             </div>
@@ -136,10 +136,10 @@ export function URLInput({ onSubmit, isLoading = false }: URLInputProps) {
             
             {/* Analysis Description */}
             {selectedAnalysisType && (
-              <div className="mt-3 p-4 bg-primary-50 rounded-lg border border-primary-100">
+              <div className="mt-3 p-4 bg-accent-500/10 backdrop-blur-sm rounded-lg border border-accent-400/20">
                 <div className="flex items-start space-x-2">
-                  <Sparkles className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-primary-700">
+                  <Sparkles className="w-4 h-4 text-accent-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-gray-200">
                     {analysisDescriptions[selectedAnalysisType]}
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export function URLInput({ onSubmit, isLoading = false }: URLInputProps) {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full text-lg py-4"
+            className="w-full text-lg py-4 bg-gradient-to-r from-accent-500 to-purple-500 hover:from-accent-600 hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
             loading={isLoading}
             disabled={!isValid || isLoading}
           >
@@ -174,11 +174,11 @@ export function URLInput({ onSubmit, isLoading = false }: URLInputProps) {
         </form>
 
         {/* Tips */}
-        <div className="border-t border-gray-200 pt-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-2">
+        <div className="border-t border-space-600/50 pt-4">
+          <h4 className="text-sm font-medium text-white mb-2">
             Tips for best results:
           </h4>
-          <ul className="text-sm text-gray-500 space-y-1">
+          <ul className="text-sm text-gray-300 space-y-1">
             <li>• Make sure your website is publicly accessible</li>
             <li>• Choose the analysis type that matches your goals</li>
             <li>• For custom analysis, be specific about what you want to focus on</li>
