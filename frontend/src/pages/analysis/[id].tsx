@@ -53,8 +53,8 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
   if (isLoading) {
     return (
       <Layout title="Loading Analysis - PulsarRank">
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-          <p>Loading analysis results...</p>
+        <div className="flex items-center justify-center min-h-screen bg-space-900">
+          <p className="text-gray-100">Loading analysis results...</p>
         </div>
       </Layout>
     );
@@ -63,14 +63,14 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
   if (!analysis || (error && showRetry)) {
     return (
       <Layout title="Error - PulsarRank">
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-screen bg-space-900">
           <Card>
             <CardContent className="p-12 text-center">
               <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-4" />
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-100 mb-2">
                 Analysis Not Found or Failed
               </h1>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-400 mb-6">
                 The analysis you're looking for couldn't be loaded.
               </p>
               <Button onClick={() => router.push('/')}>
@@ -121,20 +121,20 @@ export default function AnalysisPage({ analysisId }: AnalysisPageProps) {
   
   return (
     <Layout title={pageTitle} description={`Results for ${url}`}>
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="min-h-screen bg-space-900">
+        <div className="bg-space-800 border-b border-space-700 sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" size="sm" onClick={() => router.push('/')}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> New Analysis
                 </Button>
-                <div className="h-6 w-px bg-gray-300" />
+                <div className="h-6 w-px bg-space-600" />
                 <div>
-                  <h1 className="text-lg font-semibold text-gray-900 truncate" title={url}>
+                  <h1 className="text-lg font-semibold text-gray-100 truncate" title={url}>
                     {domain}
                   </h1>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-400">
                     {formatRelativeTime(updatedAt)}
                   </p>
                 </div>
