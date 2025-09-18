@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { 
-  Search, 
-  TrendingUp, 
-  Zap, 
-  Shield, 
-  CheckCircle, 
+import {
+  Search,
+  TrendingUp,
+  Zap,
+  Shield,
+  CheckCircle,
   BarChart3,
-  Globe,
-  Clock,
-  Users,
   Star
 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
@@ -53,12 +50,6 @@ const benefits = [
   'Custom analysis options'
 ];
 
-const stats = [
-  { label: 'Websites Analyzed', value: '50,000+', icon: Globe },
-  { label: 'Average Improvement', value: '187%', icon: TrendingUp },
-  { label: 'Analysis Time', value: '< 5 min', icon: Clock },
-  { label: 'Happy Users', value: '12,000+', icon: Users }
-];
 
 export default function HomePage() {
   const router = useRouter();
@@ -225,7 +216,7 @@ export default function HomePage() {
               >
                 ← Start New Analysis
               </Button>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-3xl font-bold text-gray-100 mb-2">
                 Analyzing Your Website
               </h1>
               <p className="text-gray-300">
@@ -248,7 +239,7 @@ export default function HomePage() {
                   <div className="text-danger-400 mb-2">
                     <Search className="w-8 h-8 mx-auto" />
                   </div>
-                  <h3 className="text-lg font-medium text-white mb-2">
+                  <h3 className="text-lg font-medium text-gray-100 mb-2">
                     Analysis Failed
                   </h3>
                   <p className="text-gray-300 mb-4">
@@ -288,23 +279,11 @@ export default function HomePage() {
               <span className="text-gradient-pulsar">Stellar Accuracy</span>
             </h1>
             
-            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-              Professional SEO analysis powered by AI. Get comprehensive insights, 
+            <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Professional SEO analysis powered by AI. Get comprehensive insights,
               actionable recommendations, and detailed performance analysis to dominate search rankings.
             </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-accent-900 bg-opacity-30 rounded-full mb-3 border border-accent-800">
-                    <stat.icon className="w-6 h-6 text-accent-400" />
-                  </div>
-                  <div className="text-2xl font-bold text-white">{stat.value}</div>
-                  <div className="text-sm text-gray-400">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* URL Input Form */}
@@ -337,7 +316,7 @@ export default function HomePage() {
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-900 bg-opacity-30 rounded-full mb-6 border border-accent-800">
                     <feature.icon className="w-8 h-8 text-accent-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-gray-100 mb-4">
                     {feature.title}
                   </h3>
                   <p className="text-gray-300">
@@ -383,7 +362,7 @@ export default function HomePage() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <BarChart3 className="w-16 h-16 text-accent-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-white mb-2">
+                    <h3 className="text-xl font-semibold text-gray-100 mb-2">
                       Sample SEO Score
                     </h3>
                     <div className="text-3xl font-bold text-accent-400 mb-2">85/100</div>
