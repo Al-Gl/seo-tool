@@ -295,14 +295,83 @@ class WebCrawler {
       // Get performance metrics
       const performanceMetrics = await page.metrics();
       
-      // Get Core Web Vitals (if available)
+      // Get Core Web Vitals and detailed performance metrics
       const coreWebVitals = await page.evaluate(() => {
         return new Promise((resolve) => {
-          if ('web-vital' in window) {
-            // This would require the web-vitals library to be loaded on the page
-            resolve({});
-          } else {
-            resolve({});
+          const vitals = {
+            lcp: null,
+            fid: null,
+            cls: null,
+            fcp: null,
+            ttfb: null
+          };
+
+          try {
+            // Check if PerformanceObserver is available
+            if ('PerformanceObserver' in window) {
+              let metricsCollected = 0;
+              const totalMetrics = 3; // LCP, FID, CLS
+              const timeout = setTimeout(() => resolve(vitals), 3000); // 3 second timeout
+
+              // LCP (Largest Contentful Paint)
+              const lcpObserver = new PerformanceObserver((entryList) => {
+                const entries = entryList.getEntries();
+                if (entries.length > 0) {
+                  vitals.lcp = Math.round(entries[entries.length - 1].startTime);
+                  metricsCollected++;
+                  if (metricsCollected === totalMetrics) {
+                    clearTimeout(timeout);
+                    resolve(vitals);
+                  }
+                }
+              });
+
+              // FID (First Input Delay)
+              const fidObserver = new PerformanceObserver((entryList) => {
+                const entries = entryList.getEntries();
+                if (entries.length > 0) {
+                  vitals.fid = Math.round(entries[0].processingStart - entries[0].startTime);
+                  metricsCollected++;
+                  if (metricsCollected === totalMetrics) {
+                    clearTimeout(timeout);
+                    resolve(vitals);
+                  }
+                }
+              });
+
+              // CLS (Cumulative Layout Shift)
+              let clsValue = 0;
+              const clsObserver = new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                  if (!entry.hadRecentInput) {
+                    clsValue += entry.value;
+                  }
+                }
+                vitals.cls = Math.round(clsValue * 1000) / 1000; // Round to 3 decimal places
+                metricsCollected++;
+                if (metricsCollected === totalMetrics) {
+                  clearTimeout(timeout);
+                  resolve(vitals);
+                }
+              });
+
+              // Start observing
+              lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+              fidObserver.observe({ entryTypes: ['first-input'] });
+              clsObserver.observe({ entryTypes: ['layout-shift'] });
+
+              // Get additional timing metrics
+              if (performance.timing) {
+                vitals.fcp = performance.getEntriesByType('paint')
+                  .find(entry => entry.name === 'first-contentful-paint')?.startTime || null;
+                vitals.ttfb = performance.timing.responseStart - performance.timing.navigationStart;
+              }
+            } else {
+              resolve(vitals);
+            }
+          } catch (error) {
+            console.log('Error collecting Core Web Vitals:', error);
+            resolve(vitals);
           }
         });
       });
@@ -322,7 +391,15 @@ class WebCrawler {
           loadTime: loadTime,
           resources: resources,
           metrics: performanceMetrics,
-          coreWebVitals: coreWebVitals
+          coreWebVitals: coreWebVitals,
+          scores: {
+            performance: this.calculatePerformanceScore(loadTime, coreWebVitals),
+            lcp: this.scoreLCP(coreWebVitals.lcp),
+            fid: this.scoreFID(coreWebVitals.fid),
+            cls: this.scoreCLS(coreWebVitals.cls),
+            fcp: this.scoreFCP(coreWebVitals.fcp),
+            ttfb: this.scoreTTFB(coreWebVitals.ttfb)
+          }
         },
 
         // SEO summary
@@ -397,6 +474,122 @@ class WebCrawler {
     }
 
     return { results, errors };
+  }
+
+  /**
+   * Calculate overall performance score based on Core Web Vitals and load time
+   * @param {number} loadTime - Page load time in milliseconds
+   * @param {Object} vitals - Core Web Vitals metrics
+   * @returns {number} Performance score (0-100)
+   */
+  calculatePerformanceScore(loadTime, vitals) {
+    let score = 0;
+    let components = 0;
+
+    // Load time score (25% weight)
+    if (loadTime) {
+      score += this.scoreLoadTime(loadTime) * 0.25;
+      components++;
+    }
+
+    // LCP score (25% weight)
+    if (vitals.lcp !== null) {
+      score += this.scoreLCP(vitals.lcp) * 0.25;
+      components++;
+    }
+
+    // FID score (20% weight)
+    if (vitals.fid !== null) {
+      score += this.scoreFID(vitals.fid) * 0.20;
+      components++;
+    }
+
+    // CLS score (20% weight)
+    if (vitals.cls !== null) {
+      score += this.scoreCLS(vitals.cls) * 0.20;
+      components++;
+    }
+
+    // FCP score (10% weight)
+    if (vitals.fcp !== null) {
+      score += this.scoreFCP(vitals.fcp) * 0.10;
+      components++;
+    }
+
+    return components > 0 ? Math.round(score * (5 / components)) : 50; // Normalize if some metrics are missing
+  }
+
+  /**
+   * Score load time performance
+   * @param {number} loadTime - Load time in milliseconds
+   * @returns {number} Score (0-100)
+   */
+  scoreLoadTime(loadTime) {
+    if (loadTime <= 1500) return 100; // Excellent
+    if (loadTime <= 2500) return 90;  // Good
+    if (loadTime <= 3500) return 75;  // Fair
+    if (loadTime <= 5000) return 50;  // Poor
+    return 25; // Very poor
+  }
+
+  /**
+   * Score LCP (Largest Contentful Paint)
+   * @param {number} lcp - LCP in milliseconds
+   * @returns {number} Score (0-100)
+   */
+  scoreLCP(lcp) {
+    if (lcp === null) return null;
+    if (lcp <= 2500) return 100; // Good
+    if (lcp <= 4000) return 75;  // Needs improvement
+    return 25; // Poor
+  }
+
+  /**
+   * Score FID (First Input Delay)
+   * @param {number} fid - FID in milliseconds
+   * @returns {number} Score (0-100)
+   */
+  scoreFID(fid) {
+    if (fid === null) return null;
+    if (fid <= 100) return 100; // Good
+    if (fid <= 300) return 75;  // Needs improvement
+    return 25; // Poor
+  }
+
+  /**
+   * Score CLS (Cumulative Layout Shift)
+   * @param {number} cls - CLS score
+   * @returns {number} Score (0-100)
+   */
+  scoreCLS(cls) {
+    if (cls === null) return null;
+    if (cls <= 0.1) return 100; // Good
+    if (cls <= 0.25) return 75; // Needs improvement
+    return 25; // Poor
+  }
+
+  /**
+   * Score FCP (First Contentful Paint)
+   * @param {number} fcp - FCP in milliseconds
+   * @returns {number} Score (0-100)
+   */
+  scoreFCP(fcp) {
+    if (fcp === null) return null;
+    if (fcp <= 1800) return 100; // Good
+    if (fcp <= 3000) return 75;  // Needs improvement
+    return 25; // Poor
+  }
+
+  /**
+   * Score TTFB (Time to First Byte)
+   * @param {number} ttfb - TTFB in milliseconds
+   * @returns {number} Score (0-100)
+   */
+  scoreTTFB(ttfb) {
+    if (ttfb === null) return null;
+    if (ttfb <= 600) return 100;  // Good
+    if (ttfb <= 1500) return 75;  // Needs improvement
+    return 25; // Poor
   }
 
   /**

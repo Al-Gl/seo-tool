@@ -675,20 +675,259 @@ export function ResultsDashboard({
       icon: <Activity className="w-4 h-4" />,
       content: (
         <TabPanel>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Load Time</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl font-bold text-gray-900">
-                    {performance.loadTime ? (performance.loadTime / 1000).toFixed(1) + 's' : 'N/A'}
-                  </span>
+          <div className="space-y-8">
+            {/* Performance Overview */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Overview</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Overall Performance Score */}
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <Activity className="w-8 h-8 text-blue-600" />
+                      <div className="text-right">
+                        <span className="text-3xl font-bold text-blue-600">
+                          {performance.scores?.performance || 'N/A'}
+                        </span>
+                        {performance.scores?.performance && <span className="text-blue-500 text-lg">/100</span>}
+                      </div>
+                    </div>
+                    <p className="text-sm text-blue-700 font-medium">Overall Performance</p>
+                    <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${performance.scores?.performance || 0}%` }}
+                      ></div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Load Time */}
+                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <Clock className="w-8 h-8 text-green-600" />
+                      <div className="text-right">
+                        <span className="text-3xl font-bold text-green-600">
+                          {performance.loadTime ? (performance.loadTime / 1000).toFixed(1) : 'N/A'}
+                        </span>
+                        {performance.loadTime && <span className="text-green-500 text-lg">s</span>}
+                      </div>
+                    </div>
+                    <p className="text-sm text-green-700 font-medium">Load Time</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      {performance.loadTime <= 2500 ? 'Excellent' :
+                       performance.loadTime <= 4000 ? 'Good' :
+                       performance.loadTime <= 5000 ? 'Fair' : 'Needs Improvement'}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Core Web Vitals Placeholder */}
+                <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <TrendingUp className="w-8 h-8 text-orange-600" />
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-orange-600">
+                          {Object.keys(performance.coreWebVitals || {}).length}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-orange-700 font-medium">Core Web Vitals</p>
+                    <p className="text-xs text-orange-600 mt-1">Metrics Available</p>
+                  </CardContent>
+                </Card>
+
+                {/* Resource Count */}
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <BarChart3 className="w-8 h-8 text-purple-600" />
+                      <div className="text-right">
+                        <span className="text-3xl font-bold text-purple-600">
+                          {performance.resources?.requests || 0}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-purple-700 font-medium">Total Requests</p>
+                    <p className="text-xs text-purple-600 mt-1">
+                      {performance.resources?.errors || 0} errors
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            {/* Core Web Vitals Detail */}
+            {performance.coreWebVitals && Object.keys(performance.coreWebVitals).length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Core Web Vitals</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* LCP - Largest Contentful Paint */}
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-blue-900 flex items-center justify-between">
+                        <span>Largest Contentful Paint</span>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          performance.coreWebVitals.lcp <= 2500 ? 'bg-green-100 text-green-800' :
+                          performance.coreWebVitals.lcp <= 4000 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {performance.coreWebVitals.lcp <= 2500 ? 'Good' :
+                           performance.coreWebVitals.lcp <= 4000 ? 'Needs Improvement' : 'Poor'}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-blue-600 mb-2">
+                        {performance.coreWebVitals.lcp ? `${(performance.coreWebVitals.lcp / 1000).toFixed(1)}s` : 'N/A'}
+                      </div>
+                      <p className="text-xs text-blue-700">
+                        Time until largest element is rendered. Target: &lt;2.5s
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* FID - First Input Delay */}
+                  <Card className="border-green-200 bg-green-50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-green-900 flex items-center justify-between">
+                        <span>First Input Delay</span>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          performance.coreWebVitals.fid <= 100 ? 'bg-green-100 text-green-800' :
+                          performance.coreWebVitals.fid <= 300 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {performance.coreWebVitals.fid <= 100 ? 'Good' :
+                           performance.coreWebVitals.fid <= 300 ? 'Needs Improvement' : 'Poor'}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600 mb-2">
+                        {performance.coreWebVitals.fid !== null ? `${performance.coreWebVitals.fid}ms` : 'N/A'}
+                      </div>
+                      <p className="text-xs text-green-700">
+                        Time to interact after first click/tap. Target: &lt;100ms
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* CLS - Cumulative Layout Shift */}
+                  <Card className="border-orange-200 bg-orange-50">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm text-orange-900 flex items-center justify-between">
+                        <span>Cumulative Layout Shift</span>
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          performance.coreWebVitals.cls <= 0.1 ? 'bg-green-100 text-green-800' :
+                          performance.coreWebVitals.cls <= 0.25 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {performance.coreWebVitals.cls <= 0.1 ? 'Good' :
+                           performance.coreWebVitals.cls <= 0.25 ? 'Needs Improvement' : 'Poor'}
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-orange-600 mb-2">
+                        {performance.coreWebVitals.cls !== null ? performance.coreWebVitals.cls.toFixed(3) : 'N/A'}
+                      </div>
+                      <p className="text-xs text-orange-700">
+                        Visual stability of page. Target: &lt;0.1
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-            {/* Add more performance cards here if data is available */}
+              </div>
+            )}
+
+            {/* Additional Performance Metrics */}
+            {(performance.coreWebVitals?.fcp || performance.coreWebVitals?.ttfb) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Metrics</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* First Contentful Paint */}
+                  {performance.coreWebVitals.fcp && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">First Contentful Paint</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-xl font-bold text-gray-800 mb-1">
+                          {(performance.coreWebVitals.fcp / 1000).toFixed(1)}s
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          Time until first content is painted. Target: &lt;1.8s
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Time to First Byte */}
+                  {performance.coreWebVitals.ttfb && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Time to First Byte</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-xl font-bold text-gray-800 mb-1">
+                          {performance.coreWebVitals.ttfb}ms
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          Server response time. Target: &lt;600ms
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Performance Recommendations */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Recommendations</h3>
+              <div className="space-y-3">
+                {performance.loadTime > 3000 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      <h4 className="font-medium text-red-900">Slow Load Time Detected</h4>
+                    </div>
+                    <p className="text-red-800 text-sm">
+                      Your page takes {(performance.loadTime / 1000).toFixed(1)} seconds to load.
+                      Consider optimizing images, enabling compression, and reducing JavaScript execution time.
+                    </p>
+                  </div>
+                )}
+
+                {performance.coreWebVitals?.lcp > 2500 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Clock className="w-5 h-5 text-yellow-600" />
+                      <h4 className="font-medium text-yellow-900">Large Contentful Paint Needs Improvement</h4>
+                    </div>
+                    <p className="text-yellow-800 text-sm">
+                      Optimize your largest content element loading time. Consider image optimization,
+                      preloading critical resources, and improving server response times.
+                    </p>
+                  </div>
+                )}
+
+                {performance.coreWebVitals?.cls > 0.1 && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Eye className="w-5 h-5 text-orange-600" />
+                      <h4 className="font-medium text-orange-900">Layout Stability Issues</h4>
+                    </div>
+                    <p className="text-orange-800 text-sm">
+                      Your page has layout shifts that affect user experience.
+                      Add size attributes to images and ensure proper spacing for dynamic content.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </TabPanel>
       )
@@ -721,15 +960,47 @@ export function ResultsDashboard({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">SEO Analysis Results</h1>
-        <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-          <Globe className="w-4 h-4" />
-          <span>{extractDomain(analysisUrl)}</span>
-          <span>•</span>
-          <Clock className="w-4 h-4" />
-          <span>{formatRelativeTime(results.completedAt || results.updatedAt)}</span>
+      {/* Header with prominent URL */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">SEO Analysis Results</h1>
+            <div className="bg-white rounded-lg p-4 border border-blue-200 mb-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Globe className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Analyzing URL:</span>
+              </div>
+              <div className="font-mono text-lg font-semibold text-blue-800 break-all">
+                {analysisUrl}
+              </div>
+              <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                <span className="flex items-center space-x-1">
+                  <span>Domain:</span>
+                  <span className="font-medium">{extractDomain(analysisUrl)}</span>
+                </span>
+                <span className="flex items-center space-x-1">
+                  <Clock className="w-4 h-4" />
+                  <span>Analyzed {formatRelativeTime(results.completedAt || results.updatedAt)}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="ml-6 flex space-x-2">
+            <Button
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+              className="flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isGeneratingPdf ? 'Generating...' : 'Download PDF'}</span>
+            </Button>
+            {onShareResults && (
+              <Button variant="outline" onClick={onShareResults} className="flex items-center space-x-2">
+                <Share2 className="w-4 h-4" />
+                <span>Share</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -791,19 +1062,56 @@ export function ResultsDashboard({
             </div>
           </CardContent>
         </Card>
-        {/* Simplified Performance & Crawl Cards */}
-         <Card>
+        {/* Enhanced Performance Card */}
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50"
+          onClick={() => setActiveTab('performance')}
+        >
           <CardContent className="p-6">
-             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-900">Performance</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-yellow-900">Performance</h3>
               <Zap className="w-5 h-5 text-yellow-500" />
             </div>
-             <div className="space-y-3">
-               <div className="flex items-center justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Overall Score</span>
+                <span className="text-sm font-semibold text-yellow-900">
+                  {performance.scores?.performance ? `${performance.scores.performance}/100` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Load Time</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-sm font-semibold text-yellow-900">
                   {performance.loadTime ? (performance.loadTime / 1000).toFixed(1) + 's' : 'N/A'}
                 </span>
+              </div>
+              {performance.coreWebVitals?.lcp && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">LCP</span>
+                  <span className={`text-sm font-semibold ${
+                    performance.coreWebVitals.lcp <= 2500 ? 'text-green-600' :
+                    performance.coreWebVitals.lcp <= 4000 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {(performance.coreWebVitals.lcp / 1000).toFixed(1)}s
+                  </span>
+                </div>
+              )}
+              {performance.coreWebVitals?.cls && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">CLS</span>
+                  <span className={`text-sm font-semibold ${
+                    performance.coreWebVitals.cls <= 0.1 ? 'text-green-600' :
+                    performance.coreWebVitals.cls <= 0.25 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    {performance.coreWebVitals.cls?.toFixed(3)}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="mt-4 pt-3 border-t border-yellow-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-yellow-700">View Core Web Vitals details</span>
+                <ExternalLink className="w-3 h-3 text-yellow-500" />
               </div>
             </div>
           </CardContent>

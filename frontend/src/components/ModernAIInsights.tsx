@@ -19,13 +19,14 @@ import {
   Wand2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { ConcreteOptimization, SearchIntentAnalysis, AIInsights } from '@/types';
+import { ConcreteOptimization, SearchIntentAnalysis, AIInsights, ProfessionalAnalysisResult, ImmediateOptimization, ContentOptimization, TechnicalEnhancement } from '@/types';
 
 interface ModernAIInsightsProps {
   insights: AIInsights;
   currentTitle?: string;
   currentMetaDescription?: string;
   url: string;
+  professionalAnalysis?: ProfessionalAnalysisResult;
 }
 
 export function ModernAIInsights({

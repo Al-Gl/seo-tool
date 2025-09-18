@@ -170,74 +170,136 @@ class AIAnalyzer {
     const culturalContext = data.language?.culturalContext || {};
 
     const analysisPrompt = `
-Based EXCLUSIVELY on the 'Webpage Data' provided below, provide BEGINNER-FRIENDLY, ACTIONABLE SEO guidance in ${language === 'en' ? 'English' : this.getLanguageName(language)}.
+You are a professional SEO consultant analyzing a website. Based EXCLUSIVELY on the 'Webpage Data' provided below, provide EXPERT-LEVEL, ACTIONABLE SEO guidance in ${language === 'en' ? 'English' : this.getLanguageName(language)}.
+
+**WEBSITE BEING ANALYZED**: ${data.url}
 
 **LANGUAGE CONTEXT**: The website appears to be in ${this.getLanguageName(language)}. ALL recommendations, code examples, and suggested content MUST be provided in ${this.getLanguageName(language)} where applicable.
 
-**TARGET AUDIENCE**: Assume the reader is a beginner who needs clear explanations. For each recommendation, explain WHY it matters for SEO.
+**ANALYSIS REQUIREMENTS**:
+1. Provide specific, actionable recommendations based on the ACTUAL content found
+2. Include exact code examples using the website's actual content where possible
+3. Give professional, detailed explanations of WHY each optimization matters
+4. Reference specific elements found on the page (titles, headings, images, etc.)
+5. Provide measurable outcomes for each recommendation
 
-Structure your response as a JSON with beginner-friendly categories:
+Structure your response as a JSON with professional SEO categories:
 
 {
-  "quickWins": {
-    "description": "Easy tasks anyone can do in 30 minutes that will improve SEO",
+  "currentPageAnalysis": {
+    "url": "${data.url}",
+    "currentTitle": "Exact current title found",
+    "titleAnalysis": "Professional analysis of current title including length, keywords, and optimization opportunities",
+    "currentMetaDescription": "Exact current meta description or 'Missing' if none found",
+    "metaDescriptionAnalysis": "Professional analysis including character count and optimization suggestions",
+    "performanceInsights": "Analysis of load times and Core Web Vitals if available"
+  },
+  "immediateOptimizations": {
+    "description": "Critical optimizations that should be implemented immediately for maximum SEO impact",
     "actions": [
       {
-        "task": "Simple description of what to do",
-        "whyItMatters": "Clear explanation of SEO benefit in simple terms",
-        "howToDo": "Step-by-step instructions for beginners",
-        "difficulty": "beginner",
-        "timeNeeded": "15-30 minutes",
+        "task": "Specific optimization task based on actual page content",
+        "currentState": "What was actually found on the page",
+        "recommendedChange": "Exact recommended improvement with specific examples",
+        "whyItMatters": "Professional explanation of SEO impact and business benefit",
+        "howToImplement": "Detailed technical implementation steps",
+        "codeExample": "Exact HTML/meta code to implement using actual page content",
+        "expectedOutcome": "Specific, measurable results expected",
+        "timeNeeded": "Realistic time estimate",
+        "impact": "high|medium|low",
+        "difficulty": "easy|moderate|complex"
+      }
+    ]
+  },
+  "contentOptimizations": {
+    "description": "Content-focused improvements based on actual page content analysis",
+    "actions": [
+      {
+        "task": "Specific content optimization using actual page text",
+        "currentContent": "Reference to actual content found on page",
+        "recommendation": "Specific content improvement with examples",
+        "keywordOpportunities": ["Array of specific keywords found or suggested based on content"],
+        "implementationStrategy": "Step-by-step content optimization approach",
+        "expectedImpact": "Specific SEO and user experience benefits",
+        "timeNeeded": "Implementation time estimate",
         "impact": "high|medium|low"
       }
     ]
   },
-  "importantFixes": {
-    "description": "Essential improvements that need attention within 1-2 weeks",
+  "technicalEnhancements": {
+    "description": "Technical SEO improvements based on actual page analysis",
     "actions": [
       {
-        "task": "What needs to be fixed",
-        "whyItMatters": "Why this is important for SEO and user experience",
-        "howToDo": "Detailed implementation steps",
-        "difficulty": "intermediate",
-        "timeNeeded": "1-4 hours",
+        "task": "Technical optimization based on actual findings",
+        "currentIssue": "Specific technical issue identified",
+        "technicalSolution": "Detailed technical implementation",
+        "codeExamples": "Complete code solutions using actual page data",
+        "validationSteps": "How to verify the fix worked",
+        "seoImpact": "Specific SEO benefits of this technical fix",
+        "timeNeeded": "Development time estimate",
         "impact": "high|medium|low",
-        "codeExample": "Exact code to implement (if applicable)"
+        "difficulty": "moderate|complex"
       }
     ]
   },
-  "advancedOptimizations": {
-    "description": "Long-term improvements for advanced users or developers",
-    "actions": [
+  "competitiveAdvantages": {
+    "description": "Advanced optimizations to gain competitive edge",
+    "opportunities": [
       {
-        "task": "Advanced optimization task",
-        "whyItMatters": "Technical SEO benefit explanation",
-        "howToDo": "Technical implementation steps",
-        "difficulty": "advanced",
-        "timeNeeded": "4+ hours or ongoing",
-        "impact": "high|medium|low",
-        "technicalDetails": "Developer-specific information"
+        "area": "Specific opportunity area based on page analysis",
+        "currentGap": "What the page is missing compared to best practices",
+        "strategicApproach": "Professional strategy to address the gap",
+        "implementationPlan": "Detailed roadmap for implementation",
+        "businessImpact": "Expected business and SEO benefits",
+        "resources": "Tools, time, and skills needed",
+        "timeline": "Realistic implementation timeline"
       }
     ]
   },
-  "languageSpecific": {
-    "detectedLanguage": "${language}",
+  "performanceOptimization": {
+    "description": "Performance improvements based on actual page metrics",
     "recommendations": [
       {
-        "task": "Language/culture-specific SEO advice",
-        "localContext": "Why this matters for ${this.getLanguageName(language)} users",
-        "implementation": "Specific steps considering cultural context"
+        "metric": "Specific performance metric (load time, Core Web Vitals, etc.)",
+        "currentValue": "Actual measured value if available",
+        "targetValue": "Recommended target for this metric",
+        "optimizationSteps": "Specific steps to improve this metric",
+        "technicalImplementation": "Code changes or configuration updates needed",
+        "expectedImprovement": "Quantified improvement expected",
+        "seoImpact": "How this performance improvement affects SEO"
+      }
+    ]
+  },
+  "measurableOutcomes": {
+    "description": "Specific, trackable improvements expected from implementing recommendations",
+    "kpis": [
+      {
+        "metric": "Specific SEO or performance metric",
+        "currentState": "Current measured or estimated value",
+        "expectedImprovement": "Specific improvement expected",
+        "timeframe": "When to expect results",
+        "trackingMethod": "How to measure success"
       }
     ]
   }
 }
 
 **CRITICAL REQUIREMENTS:**
-1. If title/meta description exists in ${this.getLanguageName(language)}, provide improved versions in the SAME language
-2. Use culturally appropriate examples and references for ${this.getLanguageName(language)} users
-3. Consider local search engines: ${culturalContext.searchEngines?.join(', ') || 'Google'}
-4. Apply language-specific character limits: Title ${culturalContext.titleLength?.max || 60} chars, Meta Description ${culturalContext.metaDescLength?.max || 160} chars
-5. Explain technical terms in simple language that beginners can understand
+1. Use ACTUAL content from the webpage in all examples and recommendations
+2. Provide specific, measurable outcomes for each recommendation
+3. Include exact code examples using the website's real content where applicable
+4. Reference specific elements found on the page (actual titles, headings, images, etc.)
+5. Give professional explanations suitable for business decision-makers
+6. Consider local search engines: ${culturalContext.searchEngines?.join(', ') || 'Google'}
+7. Apply language-specific character limits: Title ${culturalContext.titleLength?.max || 60} chars, Meta Description ${culturalContext.metaDescLength?.max || 160} chars
+8. Include performance insights if load time or Core Web Vitals data is available
+9. Provide competitive advantage insights based on current content gaps
+10. All recommendations must be actionable and include implementation steps
+
+**PERFORMANCE DATA** (if available):
+- Load Time: ${data.performance?.loadTime || 'Not measured'}ms
+- Core Web Vitals: LCP: ${data.performance?.coreWebVitals?.lcp || 'Not measured'}, FID: ${data.performance?.coreWebVitals?.fid || 'Not measured'}, CLS: ${data.performance?.coreWebVitals?.cls || 'Not measured'}
+- Performance Score: ${data.performance?.scores?.performance || 'Not calculated'}/100
 
 Webpage Data:
 ${JSON.stringify(data, null, 2)}
@@ -449,7 +511,10 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       // Performance data
       performance: {
         loadTime: crawlData.loadTime,
-        resourceCounts: crawlData.performance.resources
+        resourceCounts: crawlData.performance?.resources,
+        coreWebVitals: crawlData.performance?.coreWebVitals || {},
+        scores: crawlData.performance?.scores || {},
+        metrics: crawlData.performance?.metrics || {}
       },
 
       // SEO summary

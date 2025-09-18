@@ -37,13 +37,136 @@ export interface AnalysisResponse {
     };
     performance?: {
       loadTime?: number;
-      metrics?: {
-        lcp?: number;
-        cls?: number;
+      coreWebVitals?: CoreWebVitals;
+      scores?: PerformanceScores;
+      metrics?: any;
+      resources?: {
+        requests?: number;
+        responses?: number;
+        errors?: number;
+        totalSize?: number;
       };
     };
     language?: LanguageContext;
   };
+}
+
+// Core Web Vitals Types
+export interface CoreWebVitals {
+  lcp?: number | null; // Largest Contentful Paint in ms
+  fid?: number | null; // First Input Delay in ms
+  cls?: number | null; // Cumulative Layout Shift score
+  fcp?: number | null; // First Contentful Paint in ms
+  ttfb?: number | null; // Time to First Byte in ms
+}
+
+export interface PerformanceScores {
+  performance?: number; // Overall performance score (0-100)
+  lcp?: number | null; // LCP score (0-100)
+  fid?: number | null; // FID score (0-100)
+  cls?: number | null; // CLS score (0-100)
+  fcp?: number | null; // FCP score (0-100)
+  ttfb?: number | null; // TTFB score (0-100)
+}
+
+// Enhanced AI Analysis Types
+export interface ProfessionalAnalysisResult {
+  currentPageAnalysis: {
+    url: string;
+    currentTitle: string;
+    titleAnalysis: string;
+    currentMetaDescription: string;
+    metaDescriptionAnalysis: string;
+    performanceInsights: string;
+  };
+  immediateOptimizations: {
+    description: string;
+    actions: ImmediateOptimization[];
+  };
+  contentOptimizations: {
+    description: string;
+    actions: ContentOptimization[];
+  };
+  technicalEnhancements: {
+    description: string;
+    actions: TechnicalEnhancement[];
+  };
+  competitiveAdvantages: {
+    description: string;
+    opportunities: CompetitiveOpportunity[];
+  };
+  performanceOptimization: {
+    description: string;
+    recommendations: PerformanceRecommendation[];
+  };
+  measurableOutcomes: {
+    description: string;
+    kpis: MeasurableKPI[];
+  };
+}
+
+export interface ImmediateOptimization {
+  task: string;
+  currentState: string;
+  recommendedChange: string;
+  whyItMatters: string;
+  howToImplement: string;
+  codeExample: string;
+  expectedOutcome: string;
+  timeNeeded: string;
+  impact: 'high' | 'medium' | 'low';
+  difficulty: 'easy' | 'moderate' | 'complex';
+}
+
+export interface ContentOptimization {
+  task: string;
+  currentContent: string;
+  recommendation: string;
+  keywordOpportunities: string[];
+  implementationStrategy: string;
+  expectedImpact: string;
+  timeNeeded: string;
+  impact: 'high' | 'medium' | 'low';
+}
+
+export interface TechnicalEnhancement {
+  task: string;
+  currentIssue: string;
+  technicalSolution: string;
+  codeExamples: string;
+  validationSteps: string;
+  seoImpact: string;
+  timeNeeded: string;
+  impact: 'high' | 'medium' | 'low';
+  difficulty: 'moderate' | 'complex';
+}
+
+export interface CompetitiveOpportunity {
+  area: string;
+  currentGap: string;
+  strategicApproach: string;
+  implementationPlan: string;
+  businessImpact: string;
+  resources: string;
+  timeline: string;
+}
+
+export interface PerformanceRecommendation {
+  metric: string;
+  currentValue: string;
+  targetValue: string;
+  optimizationSteps: string;
+  technicalImplementation: string;
+  expectedImprovement: string;
+  seoImpact: string;
+}
+
+export interface MeasurableKPI {
+  metric: string;
+  currentState: string;
+  expectedImprovement: string;
+  timeframe: string;
+  trackingMethod: string;
 }
 
 // New Beginner-Friendly Analysis Types
