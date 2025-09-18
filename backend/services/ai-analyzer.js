@@ -296,6 +296,17 @@ Structure your response as a JSON with professional SEO categories:
 9. Provide competitive advantage insights based on current content gaps
 10. All recommendations must be actionable and include implementation steps
 
+**BILINGUAL OUTPUT REQUIREMENTS:**
+- ALL explanations, action plans, and business reasoning: English
+- Content recommendations (titles, meta descriptions, headings): ${this.getLanguageName(language)}
+- Code examples: Preserve original special characters (ø, æ, å, ü, ß, é, etc.) EXACTLY
+- Technical terms: English with examples in source language
+
+**CHARACTER ENCODING**:
+- CRITICAL: Preserve ALL Unicode characters including ø, æ, å, ü, ß, é, ç, ñ, etc.
+- Never replace or transliterate special characters
+- Maintain exact character representation in all outputs
+
 **PERFORMANCE DATA** (if available):
 - Load Time: ${data.performance?.loadTime || 'Not measured'}ms
 - Core Web Vitals: LCP: ${data.performance?.coreWebVitals?.lcp || 'Not measured'}, FID: ${data.performance?.coreWebVitals?.fid || 'Not measured'}, CLS: ${data.performance?.coreWebVitals?.cls || 'Not measured'}
@@ -343,11 +354,14 @@ ${JSON.stringify(data, null, 2)}
     const languageName = this.getLanguageName(language);
 
     const summaryPrompt = `
-Based ONLY on the provided SEO analysis results, create a BEGINNER-FRIENDLY executive summary in ${languageName}.
+Based ONLY on the provided SEO analysis results, create a BEGINNER-FRIENDLY executive summary.
 
 **TARGET AUDIENCE**: Someone new to SEO who needs clear, simple explanations and prioritized action steps.
 
-**LANGUAGE REQUIREMENT**: Write in ${languageName} if the website content is in ${languageName}, otherwise use English with ${languageName}-appropriate examples.
+**BILINGUAL LANGUAGE REQUIREMENTS**:
+- ALL explanations and action steps: English (for international understanding)
+- Content examples (titles, descriptions): ${languageName} with exact special characters
+- Preserve Unicode characters (ø, æ, å, ü, ß, é, etc.) in all content examples
 
 Create a summary with this exact structure:
 
@@ -403,11 +417,15 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
     const languageName = this.getLanguageName(language);
 
     const recommendationsPrompt = `
-Based ONLY on the following SEO analysis results, provide 5-10 BEGINNER-FRIENDLY recommendations in ${languageName}.
+Based ONLY on the following SEO analysis results, provide 5-10 BEGINNER-FRIENDLY recommendations.
 
 **TARGET AUDIENCE**: Beginners who need clear explanations and step-by-step guidance.
 
-**LANGUAGE REQUIREMENT**: Provide all text examples, code snippets, and explanations in ${languageName} where applicable.
+**BILINGUAL REQUIREMENTS**:
+- Explanations and instructions: English (for clarity and international use)
+- Content examples (titles, meta descriptions, headings): ${languageName}
+- Code snippets: Preserve original special characters (ø, æ, å, ü, ß, é, etc.) EXACTLY
+- Never transliterate or replace Unicode characters
 
 Structure each recommendation for different skill levels. Provide response in JSON format:
 
@@ -471,11 +489,52 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
   }
 
   /**
-   * Prepare crawl data for AI analysis
+   * Validate and preserve character encoding
+   * @param {string} text - Text to validate
+   * @returns {Object} Validation result with preserved text
+   */
+  validateCharacterEncoding(text) {
+    if (!text || typeof text !== 'string') {
+      return { isValid: true, text: text || '', hasSpecialChars: false };
+    }
+
+    // Check for special characters
+    const specialChars = /[øæåüßéèçàáíóúñ]/gi;
+    const hasSpecialChars = specialChars.test(text);
+
+    // Check for proper UTF-8 encoding (no replacement characters)
+    const hasReplacementChars = /\uFFFD/.test(text);
+    const isValid = !hasReplacementChars;
+
+    if (!isValid) {
+      console.warn('Character encoding issues detected in text:', text.substring(0, 100));
+    }
+
+    return {
+      isValid,
+      text,
+      hasSpecialChars,
+      characterCount: text.length,
+      encoding: 'UTF-8'
+    };
+  }
+
+  /**
+   * Prepare crawl data for AI analysis with character validation
    * @param {Object} crawlData - Raw crawl data
    * @returns {Object} Structured data for analysis
    */
   prepareDataForAnalysis(crawlData) {
+    // Validate character encoding for key text fields
+    const titleValidation = this.validateCharacterEncoding(crawlData.content?.title);
+    const descriptionValidation = this.validateCharacterEncoding(crawlData.content?.description);
+    const textContentValidation = this.validateCharacterEncoding(crawlData.content?.textContent);
+
+    // Log encoding issues
+    if (!titleValidation.isValid || !descriptionValidation.isValid || !textContentValidation.isValid) {
+      console.warn('Character encoding validation failed for some content fields');
+    }
+
     // Truncate the full text content to a reasonable length to avoid overly large prompts
     const truncatedTextContent = crawlData.content?.content?.textContent.substring(0, 8000) || '';
 
@@ -484,8 +543,20 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
 
     return {
       url: crawlData.url,
-      title: crawlData.content.title,
-      description: crawlData.content.description,
+      title: titleValidation.text,
+      description: descriptionValidation.text,
+
+      // Character encoding metadata
+      encoding: {
+        isValid: titleValidation.isValid && descriptionValidation.isValid && textContentValidation.isValid,
+        hasSpecialChars: titleValidation.hasSpecialChars || descriptionValidation.hasSpecialChars || textContentValidation.hasSpecialChars,
+        charset: crawlData.content?.charset || 'UTF-8',
+        validation: {
+          title: titleValidation,
+          description: descriptionValidation,
+          content: textContentValidation
+        }
+      },
 
       // Language context for AI analysis
       language: {
@@ -502,7 +573,7 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
         headingStructure: crawlData.content.headings,
         imageCount: crawlData.content.images.length,
         linkCounts: crawlData.content.content.links,
-        textContentSample: truncatedTextContent + (crawlData.content?.content?.textContent.length > 8000 ? '...' : '')
+        textContentSample: textContentValidation.text.substring(0, 8000) + (textContentValidation.text.length > 8000 ? '...' : '')
       },
 
       // Technical SEO
@@ -558,24 +629,94 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
 
     const fullText = `${title} ${description} ${textContent}`.toLowerCase();
 
-    // Simple language detection based on common words
+    // Enhanced language detection with special characters
     const languagePatterns = {
-      'da': ['og', 'til', 'med', 'på', 'der', 'det', 'som', 'ikke', 'af', 'være'],
-      'de': ['und', 'der', 'die', 'das', 'mit', 'auf', 'für', 'nicht', 'ist', 'werden'],
-      'fr': ['le', 'de', 'et', 'à', 'un', 'il', 'être', 'et', 'en', 'avoir'],
-      'es': ['el', 'de', 'que', 'y', 'a', 'en', 'un', 'ser', 'se', 'no'],
-      'it': ['il', 'di', 'che', 'e', 'la', 'per', 'un', 'in', 'con', 'non'],
-      'nl': ['de', 'het', 'van', 'en', 'in', 'op', 'voor', 'met', 'als', 'zijn'],
-      'sv': ['och', 'att', 'det', 'på', 'av', 'för', 'till', 'med', 'om', 'så'],
-      'no': ['og', 'at', 'det', 'på', 'av', 'for', 'til', 'med', 'om', 'så']
+      'da': [
+        // Common Danish words
+        'og', 'til', 'med', 'på', 'der', 'det', 'som', 'ikke', 'af', 'være',
+        // Danish words with special characters
+        'køb', 'år', 'både', 'når', 'før', 'så', 'større', 'første', 'øl', 'hør', 'død',
+        'æbler', 'lærer', 'sælger', 'værd', 'færdig', 'træ', 'kær', 'bær',
+        'få', 'gå', 'stå', 'små', 'blå', 'grå', 'nå', 'må', 'kål', 'rød', 'brød'
+      ],
+      'de': [
+        // Common German words
+        'und', 'der', 'die', 'das', 'mit', 'auf', 'für', 'nicht', 'ist', 'werden',
+        // German words with special characters
+        'über', 'können', 'müssen', 'größer', 'weiß', 'heiß', 'straße', 'schön',
+        'mögen', 'fühlen', 'früh', 'grün', 'natürlich', 'größe', 'prüfen'
+      ],
+      'fr': [
+        // Common French words
+        'le', 'de', 'et', 'à', 'un', 'il', 'être', 'en', 'avoir',
+        // French words with special characters
+        'français', 'très', 'après', 'où', 'même', 'déjà', 'été', 'voilà',
+        'préférer', 'créer', 'première', 'dernière', 'société', 'années'
+      ],
+      'es': [
+        // Common Spanish words
+        'el', 'de', 'que', 'y', 'a', 'en', 'un', 'ser', 'se', 'no',
+        // Spanish words with special characters
+        'también', 'más', 'después', 'sólo', 'años', 'país', 'así',
+        'información', 'educación', 'situación', 'población', 'español'
+      ],
+      'it': [
+        // Common Italian words
+        'il', 'di', 'che', 'e', 'la', 'per', 'un', 'in', 'con', 'non',
+        // Italian words with special characters
+        'più', 'già', 'così', 'però', 'città', 'perché', 'società',
+        'università', 'attività', 'qualità', 'possibilità'
+      ],
+      'nl': [
+        // Common Dutch words
+        'de', 'het', 'van', 'en', 'in', 'op', 'voor', 'met', 'als', 'zijn',
+        // Dutch words with special characters (limited special chars in Dutch)
+        'één', 'beëindigen', 'coördinatie', 'België', 'café'
+      ],
+      'sv': [
+        // Common Swedish words
+        'och', 'att', 'det', 'på', 'av', 'för', 'till', 'med', 'om', 'så',
+        // Swedish words with special characters
+        'är', 'när', 'här', 'där', 'år', 'två', 'få', 'små', 'kön', 'hör',
+        'större', 'första', 'många', 'väl', 'rätt', 'längre', 'förstå'
+      ],
+      'no': [
+        // Common Norwegian words
+        'og', 'at', 'det', 'på', 'av', 'for', 'til', 'med', 'om', 'så',
+        // Norwegian words with special characters
+        'år', 'både', 'når', 'før', 'større', 'første', 'få', 'små', 'høy',
+        'røy', 'blå', 'grå', 'små', 'stå', 'gå', 'må', 'nå'
+      ]
+    };
+
+    // Special character patterns for language detection boost
+    const specialCharPatterns = {
+      'da': /[øæå]/gi,
+      'de': /[üßö]/gi,
+      'fr': /[éèçàáî]/gi,
+      'es': /[ñáéíóú]/gi,
+      'it': /[àéèìíîòóù]/gi,
+      'sv': /[åäö]/gi,
+      'no': /[øæå]/gi
     };
 
     let highestScore = 0;
     let contentDetectedLang = 'en';
 
     for (const [lang, patterns] of Object.entries(languagePatterns)) {
-      const matches = patterns.filter(pattern => fullText.includes(` ${pattern} `)).length;
-      const score = matches / patterns.length;
+      let matches = patterns.filter(pattern => fullText.includes(` ${pattern} `)).length;
+      let score = matches / patterns.length;
+
+      // Boost score for special characters presence
+      if (specialCharPatterns[lang]) {
+        const specialCharMatches = (fullText.match(specialCharPatterns[lang]) || []).length;
+        const titleSpecialChars = (title.match(specialCharPatterns[lang]) || []).length;
+        const descSpecialChars = (description.match(specialCharPatterns[lang]) || []).length;
+
+        // Significant boost for special characters, especially in title/description
+        const specialCharBoost = (specialCharMatches * 0.1) + (titleSpecialChars * 0.3) + (descSpecialChars * 0.2);
+        score += specialCharBoost;
+      }
 
       if (score > highestScore && score > 0.3) {
         highestScore = score;

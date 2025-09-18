@@ -43,7 +43,8 @@ import {
   formatNumber,
   extractDomain,
   truncateText,
-  capitalize
+  capitalize,
+  getLanguageName
 } from '@/lib/utils';
 import { reportApi } from '@/lib/api';
 import { processAnalysisData, getScoreWeightingTooltip } from '@/lib/analysisProcessor';
@@ -982,6 +983,16 @@ export function ResultsDashboard({
                   <Clock className="w-4 h-4" />
                   <span>Analyzed {formatRelativeTime(results.completedAt || results.updatedAt)}</span>
                 </span>
+                {/* Language indicator */}
+                {crawlData?.language?.detected && crawlData.language.detected !== 'en' && (
+                  <span className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md">
+                    <Globe className="w-3 h-3" />
+                    <span>Language: {getLanguageName(crawlData.language.detected)}</span>
+                    {crawlData.encoding?.hasSpecialChars && (
+                      <span className="text-xs">• Special chars: ø, æ, å</span>
+                    )}
+                  </span>
+                )}
               </div>
             </div>
           </div>

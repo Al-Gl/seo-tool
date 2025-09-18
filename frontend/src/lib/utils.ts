@@ -436,3 +436,29 @@ export function formatSummaryForDisplay(structuredSummary: StructuredSummary): R
     items: section.items
   }));
 }
+
+/**
+ * Get human-readable language name from language code
+ */
+export function getLanguageName(languageCode: string): string {
+  const languages: Record<string, string> = {
+    'en': 'English',
+    'da': 'Danish',
+    'de': 'German',
+    'fr': 'French',
+    'es': 'Spanish',
+    'it': 'Italian',
+    'nl': 'Dutch',
+    'sv': 'Swedish',
+    'no': 'Norwegian',
+    'fi': 'Finnish',
+    'is': 'Icelandic',
+    'pt': 'Portuguese',
+    'pl': 'Polish',
+    'ru': 'Russian',
+    'zh': 'Chinese',
+    'ja': 'Japanese',
+    'ko': 'Korean'
+  };
+  return languages[languageCode] || languageCode.toUpperCase();
+}

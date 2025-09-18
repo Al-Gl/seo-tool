@@ -62,10 +62,16 @@ class WebCrawler {
     const page = await this.browser.newPage();
     
     try {
-      // Set user agent and viewport
-      console.log('[Crawler Step 3] Setting user agent and viewport...');
+      // Set user agent, viewport, and UTF-8 encoding headers
+      console.log('[Crawler Step 3] Setting user agent, viewport, and encoding...');
       await page.setUserAgent(this.options.userAgent);
       await page.setViewport(this.options.viewport);
+
+      // Force UTF-8 character handling
+      await page.setExtraHTTPHeaders({
+        'Accept-Charset': 'utf-8',
+        'Accept-Language': 'da,en;q=0.9,*;q=0.8' // Prioritize Danish and English
+      });
 
       // Enable request interception for performance monitoring
       await page.setRequestInterception(true);
@@ -115,6 +121,7 @@ class WebCrawler {
       console.log('[Crawler Step 6] Evaluating page content...');
 
       const pageData = await page.evaluate(() => {
+        // Ensure proper Unicode/UTF-8 handling in evaluation context
         const data = {
           url: window.location.href,
           title: document.title || '',
@@ -123,14 +130,16 @@ class WebCrawler {
           canonical: '',
           robots: '',
           lang: document.documentElement.lang || '',
-          charset: document.characterSet || '',
+          charset: document.characterSet || 'UTF-8',
           
-          // Content analysis
+          // Content analysis with UTF-8 preservation
           content: {
             textContent: document.body ? document.body.innerText : '',
+            htmlContent: document.body ? document.body.innerHTML : '',
             wordCount: 0,
             paragraphs: document.querySelectorAll('p').length,
             images: document.querySelectorAll('img').length,
+            hasSpecialChars: false, // Will be set based on content analysis
             links: {
               internal: 0,
               external: 0,
@@ -270,9 +279,15 @@ class WebCrawler {
           }
         });
 
-        // Content analysis
+        // Content analysis with special character detection
         if (data.content.textContent) {
           data.content.wordCount = data.content.textContent.split(/\s+/).filter(word => word.length > 0).length;
+
+          // Detect special characters (Danish, German, French, etc.)
+          const specialCharPattern = /[øæåüßéèçàáíóúñ]/i;
+          data.content.hasSpecialChars = specialCharPattern.test(data.content.textContent) ||
+                                       specialCharPattern.test(data.title) ||
+                                       specialCharPattern.test(data.description);
         }
 
         // Extract schema markup
