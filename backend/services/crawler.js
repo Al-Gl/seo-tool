@@ -214,10 +214,20 @@ class WebCrawler {
           }
         });
 
-        // Extract canonical URL
+        // Extract canonical URL with proper attribute handling
         const canonical = document.querySelector('link[rel="canonical"]');
         if (canonical) {
-          data.canonical = canonical.href;
+          // Use getAttribute first, fallback to href property
+          data.canonical = canonical.getAttribute('href') || canonical.href || '';
+
+          // Convert relative URLs to absolute URLs
+          if (data.canonical && !data.canonical.startsWith('http')) {
+            try {
+              data.canonical = new URL(data.canonical, window.location.origin).href;
+            } catch (e) {
+              console.warn('Error converting relative canonical URL:', e);
+            }
+          }
         }
 
         // Extract headings
@@ -280,14 +290,21 @@ class WebCrawler {
         });
 
         // Content analysis with special character detection
-        if (data.content.textContent) {
-          data.content.wordCount = data.content.textContent.split(/\s+/).filter(word => word.length > 0).length;
+        if (data.content.textContent && typeof data.content.textContent === 'string') {
+          // Fix word count calculation with proper validation
+          const textForCounting = data.content.textContent.trim();
+          data.content.wordCount = textForCounting.length > 0 ?
+            textForCounting.split(/\s+/).filter(word => word.length > 0).length : 0;
 
           // Detect special characters (Danish, German, French, etc.)
           const specialCharPattern = /[øæåüßéèçàáíóúñ]/i;
           data.content.hasSpecialChars = specialCharPattern.test(data.content.textContent) ||
                                        specialCharPattern.test(data.title) ||
                                        specialCharPattern.test(data.description);
+        } else {
+          // Fallback: set word count to 0 if no valid text content
+          data.content.wordCount = 0;
+          data.content.hasSpecialChars = false;
         }
 
         // Extract schema markup

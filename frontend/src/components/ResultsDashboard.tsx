@@ -943,14 +943,22 @@ export function ResultsDashboard({
             {content.schemaMarkup && content.schemaMarkup.length > 0 ? (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Schema Markup Found</h3>
-                <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto">
-                  <code>{JSON.stringify(content.schemaMarkup, null, 2)}</code>
+                <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto border border-gray-200">
+                  <code className="text-gray-900 leading-relaxed">{JSON.stringify(content.schemaMarkup, null, 2)}</code>
                 </pre>
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
                 <Code className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Schema Markup Found</h3>
+                <p className="text-sm text-gray-500 max-w-md mx-auto mb-4">
+                  Consider adding JSON-LD schema markup to improve search visibility and help search engines better understand your content.
+                </p>
+                <div className="p-3 bg-blue-50 rounded-md border border-blue-200 max-w-md mx-auto">
+                  <p className="text-xs text-blue-700">
+                    💡 <strong>Tip:</strong> Schema markup can improve click-through rates by enabling rich snippets in search results.
+                  </p>
+                </div>
               </div>
             )}
           </div>
