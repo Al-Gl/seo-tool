@@ -16,10 +16,13 @@ import {
   Clock,
   AlertCircle,
   Brain,
-  Wand2
+  Wand2,
+  List,
+  Activity
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ConcreteOptimization, SearchIntentAnalysis, AIInsights, ProfessionalAnalysisResult, ImmediateOptimization, ContentOptimization, TechnicalEnhancement } from '@/types';
+import { parseAISummary, ParsedSummarySection } from '@/lib/utils';
 
 interface ModernAIInsightsProps {
   insights: AIInsights;
@@ -27,6 +30,94 @@ interface ModernAIInsightsProps {
   currentMetaDescription?: string;
   url: string;
   professionalAnalysis?: ProfessionalAnalysisResult;
+}
+
+// Structured Summary Component
+function StructuredSummary({ text }: { text: string }) {
+  const structuredSummary = parseAISummary(text);
+
+  if (!structuredSummary.hasStructure) {
+    // Fallback to original paragraph display
+    return (
+      <p className="text-white/90 leading-relaxed text-base">
+        {text}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {structuredSummary.sections.map((section, index) => (
+        <SummarySection key={index} section={section} />
+      ))}
+    </div>
+  );
+}
+
+// Individual Section Component
+function SummarySection({ section }: { section: ParsedSummarySection }) {
+  switch (section.type) {
+    case 'header':
+      const HeaderTag = section.level === 1 ? 'h3' : section.level === 2 ? 'h4' : 'h5';
+      const headerSizeClass = section.level === 1 ? 'text-lg font-bold' :
+                             section.level === 2 ? 'text-base font-semibold' :
+                             'text-sm font-medium';
+
+      return (
+        <div className="border-l-4 border-yellow-300 pl-4 py-2">
+          <HeaderTag className={`text-yellow-100 ${headerSizeClass} flex items-center space-x-2`}>
+            {section.icon && <span className="text-lg">{section.icon}</span>}
+            <span>{section.content}</span>
+          </HeaderTag>
+        </div>
+      );
+
+    case 'list':
+      return (
+        <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+          <div className="flex items-center space-x-2 mb-3">
+            <List className="w-4 h-4 text-blue-300" />
+            <span className="text-sm font-medium text-blue-100">Recommendations</span>
+          </div>
+          <ul className="space-y-2">
+            {section.items?.map((item, idx) => (
+              <li key={idx} className="flex items-start space-x-2 text-white/90 text-sm">
+                <CheckCircle2 className="w-4 h-4 text-green-300 flex-shrink-0 mt-0.5" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+
+    case 'metric':
+      return (
+        <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-400/30">
+          <div className="flex items-center space-x-2">
+            <Activity className="w-4 h-4 text-blue-300" />
+            <span className="text-blue-100 text-sm font-medium">{section.content}</span>
+          </div>
+        </div>
+      );
+
+    case 'action':
+      return (
+        <div className="bg-orange-500/20 rounded-lg p-3 border border-orange-400/30">
+          <div className="flex items-center space-x-2">
+            <Zap className="w-4 h-4 text-orange-300" />
+            <span className="text-orange-100 text-sm font-medium">{section.content}</span>
+          </div>
+        </div>
+      );
+
+    case 'paragraph':
+    default:
+      return (
+        <p className="text-white/90 leading-relaxed text-base">
+          {section.content}
+        </p>
+      );
+  }
 }
 
 export function ModernAIInsights({
@@ -108,9 +199,7 @@ export function ModernAIInsights({
               <Wand2 className="w-5 h-5 text-yellow-300" />
               <h3 className="text-lg font-semibold">AI Analysis Summary</h3>
             </div>
-            <p className="text-white/90 leading-relaxed text-base">
-              {insights.summary || 'AI analysis summary is being generated.'}
-            </p>
+            <StructuredSummary text={insights.summary || 'AI analysis summary is being generated.'} />
           </div>
 
           {/* Quick Wins Section */}
