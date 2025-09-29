@@ -91,7 +91,11 @@ class AIAnalyzer {
 
       // Generate comprehensive SEO analysis
       const comprehensiveAnalysis = await this.generateComprehensiveAnalysis(structuredData);
-      
+
+      // Calculate SEO validation scores
+      const seoValidation = this.calculateSEOValidationScores(crawlData);
+      const priorityMatrix = this.generateSEOPriorityMatrix(seoValidation);
+
       // Calculate analysis duration
       const analysisTime = Date.now() - startTime;
 
@@ -99,17 +103,21 @@ class AIAnalyzer {
         url: crawlData.url,
         analyzedAt: new Date().toISOString(),
         analysisTime: analysisTime,
-        
+
         // Prompt-based results
         promptResults: promptResults,
         promptAnalyses: analysisResults,
-        
+
         // Comprehensive analysis
         comprehensiveAnalysis: comprehensiveAnalysis,
-        
+
+        // SEO validation and scoring
+        seoValidation: seoValidation,
+        priorityMatrix: priorityMatrix,
+
         // SEO scores and metrics
         seoScores: this.calculateSEOScores(crawlData, comprehensiveAnalysis),
-        
+
         // Summary and recommendations
         summary: await this.generateSummary(crawlData, comprehensiveAnalysis),
         recommendations: await this.generateRecommendations(crawlData, comprehensiveAnalysis)
@@ -170,20 +178,35 @@ class AIAnalyzer {
     const culturalContext = data.language?.culturalContext || {};
 
     const analysisPrompt = `
-You are a professional SEO consultant analyzing a website. Based EXCLUSIVELY on the 'Webpage Data' provided below, provide EXPERT-LEVEL, ACTIONABLE SEO guidance in ${language === 'en' ? 'English' : this.getLanguageName(language)}.
+You are a senior SEO consultant with 10+ years of experience analyzing websites. Based EXCLUSIVELY on the 'Webpage Data' provided below, provide EXPERT-LEVEL, IMPLEMENTABLE SEO recommendations in ${language === 'en' ? 'English' : this.getLanguageName(language)}.
 
 **WEBSITE BEING ANALYZED**: ${data.url}
 
 **LANGUAGE CONTEXT**: The website appears to be in ${this.getLanguageName(language)}. ALL recommendations, code examples, and suggested content MUST be provided in ${this.getLanguageName(language)} where applicable.
 
-**ANALYSIS REQUIREMENTS**:
-1. Provide specific, actionable recommendations based on the ACTUAL content found
-2. Include exact code examples using the website's actual content where possible
-3. Give professional, detailed explanations of WHY each optimization matters
-4. Reference specific elements found on the page (titles, headings, images, etc.)
-5. Provide measurable outcomes for each recommendation
+**CRITICAL SEO ANALYSIS REQUIREMENTS**:
+1. Provide SPECIFIC, IMPLEMENTABLE recommendations based on ACTUAL content found
+2. Include EXACT HTML code examples using the website's real content
+3. Give CONCRETE explanations of WHY each optimization matters for rankings
+4. Reference SPECIFIC elements found on the page (exact titles, headings, images, etc.)
+5. Provide MEASURABLE outcomes with realistic timelines (e.g., "15-30% CTR increase in 4-6 weeks")
+6. Include COMPETITOR-BEATING strategies based on current content gaps
+7. Address CORE WEB VITALS and TECHNICAL SEO issues with specific fixes
+8. Provide LOCAL SEO recommendations if business location detected
+9. Include MOBILE-FIRST optimizations with specific implementation steps
+10. Give CONTENT OPTIMIZATION with exact word count targets and keyword placement
 
-Structure your response as a JSON with professional SEO categories:
+**SEO BENCHMARKS TO REFERENCE**:
+- Title tags: 30-60 characters (50-55 optimal)
+- Meta descriptions: 120-160 characters (150-155 optimal)
+- H1 tags: 1 per page, 20-70 characters
+- H2-H6: Clear hierarchy with target keywords
+- Image alt text: Descriptive, 125 characters max
+- Internal links: 2-5 contextual links per 1000 words
+- Page speed: <2.5s load time, LCP <2.5s, FID <100ms, CLS <0.1
+- Content length: 1000+ words for competitive keywords
+
+Structure your response as a JSON with these SPECIFIC SEO categories:
 
 {
   "currentPageAnalysis": {
@@ -194,107 +217,166 @@ Structure your response as a JSON with professional SEO categories:
     "metaDescriptionAnalysis": "Professional analysis including character count and optimization suggestions",
     "performanceInsights": "Analysis of load times and Core Web Vitals if available"
   },
-  "immediateOptimizations": {
-    "description": "Critical optimizations that should be implemented immediately for maximum SEO impact",
-    "actions": [
+  "criticalSEOIssues": {
+    "description": "CRITICAL SEO problems that are harming rankings RIGHT NOW",
+    "issues": [
       {
-        "task": "Specific optimization task based on actual page content",
-        "currentState": "What was actually found on the page",
-        "recommendedChange": "Exact recommended improvement with specific examples",
-        "whyItMatters": "Professional explanation of SEO impact and business benefit",
-        "howToImplement": "Detailed technical implementation steps",
-        "codeExample": "Exact HTML/meta code to implement using actual page content",
-        "expectedOutcome": "Specific, measurable results expected",
-        "timeNeeded": "Realistic time estimate",
-        "impact": "high|medium|low",
-        "difficulty": "easy|moderate|complex"
+        "issue": "Specific SEO problem found on the page",
+        "currentProblem": "Exact current state causing SEO harm",
+        "seoImpact": "Specific ranking/traffic impact (e.g., '25-40% potential traffic loss')",
+        "immediateAction": "EXACT steps to fix this now",
+        "htmlCode": "Complete HTML code to implement (copy-paste ready)",
+        "expectedImprovement": "Measurable outcome (e.g., '15-30% CTR increase in 3-4 weeks')",
+        "timeToImplement": "Minutes/hours needed",
+        "difficultyLevel": "beginner|intermediate|advanced",
+        "priority": "critical|high|medium|low"
+      }
+    ]
+  },
+  "quickWinOptimizations": {
+    "description": "Fast SEO improvements that deliver results in 1-4 weeks",
+    "optimizations": [
+      {
+        "optimization": "Specific quick-win opportunity",
+        "currentContent": "What's currently on the page",
+        "optimizedContent": "EXACT replacement content",
+        "implementation": "Step-by-step implementation guide",
+        "codeSnippet": "Ready-to-use HTML/CSS/JS code",
+        "keywordTarget": ["specific", "keywords", "targeted"],
+        "expectedResults": "Measurable improvement timeline",
+        "competitiveAdvantage": "How this beats competitors",
+        "validationSteps": "How to verify implementation worked"
       }
     ]
   },
   "contentOptimizations": {
-    "description": "Content-focused improvements based on actual page content analysis",
-    "actions": [
+    "description": "STRATEGIC content improvements to dominate search results",
+    "strategies": [
       {
-        "task": "Specific content optimization using actual page text",
-        "currentContent": "Reference to actual content found on page",
-        "recommendation": "Specific content improvement with examples",
-        "keywordOpportunities": ["Array of specific keywords found or suggested based on content"],
-        "implementationStrategy": "Step-by-step content optimization approach",
-        "expectedImpact": "Specific SEO and user experience benefits",
-        "timeNeeded": "Implementation time estimate",
-        "impact": "high|medium|low"
+        "contentArea": "Specific content section to optimize",
+        "currentWordCount": "Actual current word count",
+        "targetWordCount": "Optimal word count for competitive keywords",
+        "keywordGaps": ["Missing keywords competitors rank for"],
+        "contentStructure": "Exact heading structure to implement (H1, H2, H3 with keywords)",
+        "contentToAdd": "Specific content sections/paragraphs to add",
+        "internalLinkingPlan": "Exact internal links to add with anchor text",
+        "competitorAnalysis": "What top-ranking pages have that this page lacks",
+        "implementation": "Step-by-step content expansion plan",
+        "expectedRankingImprovement": "Projected SERP position improvement",
+        "timeline": "Realistic timeline for content production and results"
       }
     ]
   },
-  "technicalEnhancements": {
-    "description": "Technical SEO improvements based on actual page analysis",
-    "actions": [
+  "technicalSEOFixes": {
+    "description": "CRITICAL technical SEO issues that must be fixed for better rankings",
+    "fixes": [
       {
-        "task": "Technical optimization based on actual findings",
-        "currentIssue": "Specific technical issue identified",
-        "technicalSolution": "Detailed technical implementation",
-        "codeExamples": "Complete code solutions using actual page data",
-        "validationSteps": "How to verify the fix worked",
-        "seoImpact": "Specific SEO benefits of this technical fix",
-        "timeNeeded": "Development time estimate",
-        "impact": "high|medium|low",
-        "difficulty": "moderate|complex"
+        "technicalIssue": "Specific technical SEO problem found",
+        "currentState": "What's currently wrong technically",
+        "seoHarm": "How this hurts search engine rankings",
+        "fixImplementation": "EXACT technical steps to resolve",
+        "codeToImplement": "Complete, copy-paste ready code solution",
+        "testingMethod": "How to verify the fix worked",
+        "toolsNeeded": "Specific tools/plugins required (if any)",
+        "developmentTime": "Realistic development time estimate",
+        "seoImprovement": "Expected ranking/traffic improvement",
+        "coreWebVitalsImpact": "Effect on LCP, FID, CLS scores"
       }
     ]
   },
   "competitiveAdvantages": {
-    "description": "Advanced optimizations to gain competitive edge",
+    "description": "STRATEGIC opportunities to outrank competitors and dominate search results",
     "opportunities": [
       {
-        "area": "Specific opportunity area based on page analysis",
-        "currentGap": "What the page is missing compared to best practices",
-        "strategicApproach": "Professional strategy to address the gap",
-        "implementationPlan": "Detailed roadmap for implementation",
-        "businessImpact": "Expected business and SEO benefits",
-        "resources": "Tools, time, and skills needed",
-        "timeline": "Realistic implementation timeline"
+        "competitiveGap": "Specific gap this site has vs top-ranking competitors",
+        "opportunitySize": "Traffic/revenue potential (e.g., '500-1000 monthly visitors')",
+        "implementationPlan": "Exact steps to exploit this competitive advantage",
+        "contentStrategy": "Specific content to create/optimize to beat competitors",
+        "keywordTargets": ["High-value keywords competitors miss"],
+        "technicalAdvantage": "Technical SEO improvements competitors lack",
+        "linkBuildingAngle": "Specific link-earning opportunities",
+        "expectedRanking": "Projected SERP position after implementation",
+        "competitiveAnalysis": "What top 3 competitors are doing wrong",
+        "executionTimeline": "Month-by-month implementation plan",
+        "successMetrics": "Specific KPIs to track competitive gains"
       }
     ]
   },
-  "performanceOptimization": {
-    "description": "Performance improvements based on actual page metrics",
-    "recommendations": [
+  "coreWebVitalsOptimization": {
+    "description": "CRITICAL page speed fixes to improve Core Web Vitals and search rankings",
+    "optimizations": [
       {
-        "metric": "Specific performance metric (load time, Core Web Vitals, etc.)",
-        "currentValue": "Actual measured value if available",
-        "targetValue": "Recommended target for this metric",
-        "optimizationSteps": "Specific steps to improve this metric",
-        "technicalImplementation": "Code changes or configuration updates needed",
-        "expectedImprovement": "Quantified improvement expected",
-        "seoImpact": "How this performance improvement affects SEO"
+        "vitalMetric": "Specific Core Web Vital (LCP, FID, CLS)",
+        "currentScore": "Actual measured score if available",
+        "targetScore": "Google-recommended target score",
+        "performanceIssue": "Specific issue causing poor performance",
+        "technicalFix": "EXACT technical steps to improve this metric",
+        "codeImplementation": "Complete code solution to implement",
+        "imageOptimization": "Specific image files to compress/optimize",
+        "loadingStrategy": "Lazy loading, preloading strategies to implement",
+        "expectedImprovement": "Projected score improvement (e.g., 'LCP from 4.2s to 2.1s')",
+        "seoRankingImpact": "Expected ranking improvement from speed gains",
+        "implementationPriority": "critical|high|medium",
+        "developmentEffort": "Hours/days needed for implementation"
       }
     ]
   },
   "measurableOutcomes": {
-    "description": "Specific, trackable improvements expected from implementing recommendations",
-    "kpis": [
+    "description": "SPECIFIC, trackable improvements with realistic timelines and success metrics",
+    "outcomes": [
       {
-        "metric": "Specific SEO or performance metric",
-        "currentState": "Current measured or estimated value",
-        "expectedImprovement": "Specific improvement expected",
-        "timeframe": "When to expect results",
-        "trackingMethod": "How to measure success"
+        "kpiMetric": "Specific SEO metric to track",
+        "currentBaseline": "Current measured value",
+        "targetImprovement": "Specific improvement goal with percentage/number",
+        "timelineToResults": "Realistic timeline (e.g., '4-8 weeks for initial results')",
+        "trackingTools": "Specific tools to use for measurement (Google Analytics, Search Console, etc.)",
+        "validationMethod": "How to verify improvements are from these optimizations",
+        "revenueImpact": "Potential business impact if applicable",
+        "competitiveBenchmark": "How this compares to industry standards"
+      }
+    ]
+  },
+  "implementationRoadmap": {
+    "description": "PRIORITIZED action plan with exact implementation order",
+    "phases": [
+      {
+        "phase": "Phase 1: Critical Fixes (Week 1-2)",
+        "actions": ["List of highest priority actions in order"],
+        "expectedImpact": "Immediate SEO improvements expected",
+        "resourcesNeeded": "Time, tools, or expertise required"
+      },
+      {
+        "phase": "Phase 2: Quick Wins (Week 3-6)",
+        "actions": ["List of quick win optimizations"],
+        "expectedImpact": "Short-term ranking and traffic improvements",
+        "resourcesNeeded": "Time, tools, or expertise required"
+      },
+      {
+        "phase": "Phase 3: Strategic Growth (Month 2-3)",
+        "actions": ["List of longer-term strategic improvements"],
+        "expectedImpact": "Long-term competitive advantages",
+        "resourcesNeeded": "Time, tools, or expertise required"
       }
     ]
   }
 }
 
-**CRITICAL REQUIREMENTS:**
-1. Use ACTUAL content from the webpage in all examples and recommendations
-2. Provide specific, measurable outcomes for each recommendation
-3. Include exact code examples using the website's real content where applicable
-4. Reference specific elements found on the page (actual titles, headings, images, etc.)
-5. Give professional explanations suitable for business decision-makers
+**CRITICAL IMPLEMENTATION REQUIREMENTS:**
+1. Use ACTUAL content from the webpage in ALL examples and recommendations
+2. Provide SPECIFIC, MEASURABLE outcomes with realistic timelines for each recommendation
+3. Include EXACT HTML/CSS/JS code examples using the website's real content - ready to copy and paste
+4. Reference SPECIFIC elements found on the page (actual titles, headings, images, URLs, etc.)
+5. Give PROFESSIONAL explanations that justify ROI to business decision-makers
 6. Consider local search engines: ${culturalContext.searchEngines?.join(', ') || 'Google'}
-7. Apply language-specific character limits: Title ${culturalContext.titleLength?.max || 60} chars, Meta Description ${culturalContext.metaDescLength?.max || 160} chars
-8. Include performance insights if load time or Core Web Vitals data is available
-9. Provide competitive advantage insights based on current content gaps
-10. All recommendations must be actionable and include implementation steps
+7. Apply STRICT character limits: Title ${culturalContext.titleLength?.max || 60} chars, Meta Description ${culturalContext.metaDescLength?.max || 160} chars
+8. Include PERFORMANCE insights with specific Core Web Vitals improvements if data available
+9. Provide COMPETITIVE advantage insights based on content gaps vs top-ranking pages
+10. ALL recommendations MUST be actionable with step-by-step implementation guides
+11. Include PRIORITY levels (critical/high/medium/low) for each recommendation
+12. Provide DIFFICULTY levels (beginner/intermediate/advanced) for implementation
+13. Include RESOURCE requirements (time, tools, expertise needed)
+14. Give VALIDATION methods to verify each optimization worked
+15. Provide TRACKING methods to measure success of each change
 
 **BILINGUAL OUTPUT REQUIREMENTS:**
 - ALL explanations, action plans, and business reasoning: English
@@ -1508,6 +1590,419 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
     }
 
     return scores;
+  }
+
+  /**
+   * Calculate comprehensive SEO validation scores
+   * @param {Object} crawlData - Crawl data to analyze
+   * @returns {Object} SEO validation results
+   */
+  calculateSEOValidationScores(crawlData) {
+    const validation = {
+      titleTag: this.validateTitleTag(crawlData.content?.title),
+      metaDescription: this.validateMetaDescription(crawlData.content?.description),
+      headingStructure: this.validateHeadingStructure(crawlData.content?.headings),
+      contentLength: this.validateContentLength(crawlData.content?.content?.wordCount),
+      imageOptimization: this.validateImageOptimization(crawlData.content?.images),
+      internalLinking: this.validateInternalLinking(crawlData.content?.content?.links),
+      technicalSEO: this.validateTechnicalSEO(crawlData.content?.technical),
+      overallScore: 0
+    };
+
+    // Calculate overall score
+    const scores = Object.values(validation).filter(v => typeof v === 'object' && v.score !== undefined);
+    validation.overallScore = Math.round(scores.reduce((sum, item) => sum + item.score, 0) / scores.length);
+
+    return validation;
+  }
+
+  /**
+   * Validate title tag optimization
+   * @param {string} title - Page title
+   * @returns {Object} Title validation result
+   */
+  validateTitleTag(title) {
+    const validation = {
+      score: 0,
+      length: title ? title.length : 0,
+      issues: [],
+      recommendations: []
+    };
+
+    if (!title) {
+      validation.issues.push('Missing title tag');
+      validation.recommendations.push('Add a descriptive title tag with primary keywords');
+      return validation;
+    }
+
+    // Length validation
+    if (title.length < 30) {
+      validation.issues.push('Title too short (less than 30 characters)');
+      validation.recommendations.push('Expand title to 50-60 characters for optimal SEO');
+      validation.score += 20;
+    } else if (title.length > 60) {
+      validation.issues.push('Title too long (more than 60 characters)');
+      validation.recommendations.push('Shorten title to 50-60 characters to prevent truncation');
+      validation.score += 60;
+    } else {
+      validation.score += 100;
+    }
+
+    // Additional checks
+    if (title.toLowerCase().includes('untitled') || title.toLowerCase().includes('new page')) {
+      validation.issues.push('Generic or placeholder title detected');
+      validation.recommendations.push('Replace with specific, keyword-rich title');
+      validation.score = Math.min(validation.score, 30);
+    }
+
+    return validation;
+  }
+
+  /**
+   * Validate meta description optimization
+   * @param {string} description - Meta description
+   * @returns {Object} Meta description validation result
+   */
+  validateMetaDescription(description) {
+    const validation = {
+      score: 0,
+      length: description ? description.length : 0,
+      issues: [],
+      recommendations: []
+    };
+
+    if (!description) {
+      validation.issues.push('Missing meta description');
+      validation.recommendations.push('Add compelling meta description with call-to-action');
+      return validation;
+    }
+
+    // Length validation
+    if (description.length < 120) {
+      validation.issues.push('Meta description too short (less than 120 characters)');
+      validation.recommendations.push('Expand to 150-160 characters for maximum SERP visibility');
+      validation.score += 50;
+    } else if (description.length > 160) {
+      validation.issues.push('Meta description too long (more than 160 characters)');
+      validation.recommendations.push('Shorten to 150-160 characters to prevent truncation');
+      validation.score += 70;
+    } else {
+      validation.score += 100;
+    }
+
+    // Content quality checks
+    const hasCallToAction = /\b(learn more|discover|find out|get|try|start|book|contact|call|visit|shop|buy)\b/i.test(description);
+    if (!hasCallToAction) {
+      validation.issues.push('Missing call-to-action in meta description');
+      validation.recommendations.push('Add compelling call-to-action to improve CTR');
+      validation.score = Math.max(validation.score - 20, 0);
+    }
+
+    return validation;
+  }
+
+  /**
+   * Validate heading structure (H1-H6)
+   * @param {Array} headings - Array of headings
+   * @returns {Object} Heading validation result
+   */
+  validateHeadingStructure(headings) {
+    const validation = {
+      score: 0,
+      issues: [],
+      recommendations: [],
+      hierarchy: {}
+    };
+
+    if (!headings || headings.length === 0) {
+      validation.issues.push('No headings found');
+      validation.recommendations.push('Add proper heading structure (H1, H2, H3) with target keywords');
+      return validation;
+    }
+
+    // Count headings by level
+    headings.forEach(heading => {
+      const level = `h${heading.level}`;
+      validation.hierarchy[level] = (validation.hierarchy[level] || 0) + 1;
+    });
+
+    // H1 validation
+    if (!validation.hierarchy.h1) {
+      validation.issues.push('Missing H1 tag');
+      validation.recommendations.push('Add single H1 tag with primary keyword');
+      validation.score = 0;
+    } else if (validation.hierarchy.h1 > 1) {
+      validation.issues.push('Multiple H1 tags found');
+      validation.recommendations.push('Use only one H1 tag per page for best SEO');
+      validation.score = 40;
+    } else {
+      validation.score = 80;
+    }
+
+    // Structure validation
+    const hasH2 = validation.hierarchy.h2 > 0;
+    const hasH3 = validation.hierarchy.h3 > 0;
+
+    if (!hasH2) {
+      validation.issues.push('Missing H2 subheadings');
+      validation.recommendations.push('Add H2 subheadings to improve content structure');
+      validation.score = Math.max(validation.score - 20, 0);
+    }
+
+    if (hasH3 && !hasH2) {
+      validation.issues.push('H3 used without H2 (improper hierarchy)');
+      validation.recommendations.push('Maintain proper heading hierarchy (H1 > H2 > H3)');
+      validation.score = Math.max(validation.score - 15, 0);
+    }
+
+    if (validation.score > 60) validation.score = 100;
+
+    return validation;
+  }
+
+  /**
+   * Validate content length and quality
+   * @param {number} wordCount - Content word count
+   * @returns {Object} Content validation result
+   */
+  validateContentLength(wordCount) {
+    const validation = {
+      score: 0,
+      wordCount: wordCount || 0,
+      issues: [],
+      recommendations: []
+    };
+
+    if (!wordCount || wordCount < 300) {
+      validation.issues.push('Insufficient content length (less than 300 words)');
+      validation.recommendations.push('Expand content to at least 1000 words for competitive keywords');
+      validation.score = 20;
+    } else if (wordCount < 600) {
+      validation.issues.push('Content length below competitive threshold (less than 600 words)');
+      validation.recommendations.push('Consider expanding content for better search visibility');
+      validation.score = 50;
+    } else if (wordCount < 1000) {
+      validation.issues.push('Content length below optimal range (less than 1000 words)');
+      validation.recommendations.push('Expand content to 1000+ words for competitive advantage');
+      validation.score = 70;
+    } else {
+      validation.score = 100;
+    }
+
+    return validation;
+  }
+
+  /**
+   * Validate image optimization
+   * @param {Array} images - Array of images
+   * @returns {Object} Image validation result
+   */
+  validateImageOptimization(images) {
+    const validation = {
+      score: 0,
+      imageCount: images ? images.length : 0,
+      issues: [],
+      recommendations: []
+    };
+
+    if (!images || images.length === 0) {
+      validation.issues.push('No images found');
+      validation.recommendations.push('Add relevant images with descriptive alt text');
+      validation.score = 50; // Not critical for all pages
+      return validation;
+    }
+
+    let imagesWithAlt = 0;
+    let imagesWithoutAlt = 0;
+
+    images.forEach(image => {
+      if (image.alt && image.alt.trim().length > 0) {
+        imagesWithAlt++;
+      } else {
+        imagesWithoutAlt++;
+      }
+    });
+
+    if (imagesWithoutAlt === 0) {
+      validation.score = 100;
+    } else if (imagesWithAlt > imagesWithoutAlt) {
+      validation.score = 70;
+      validation.issues.push(`${imagesWithoutAlt} images missing alt text`);
+      validation.recommendations.push('Add descriptive alt text to all images');
+    } else {
+      validation.score = 30;
+      validation.issues.push(`${imagesWithoutAlt} images missing alt text`);
+      validation.recommendations.push('Add descriptive alt text to all images for accessibility and SEO');
+    }
+
+    return validation;
+  }
+
+  /**
+   * Validate internal linking strategy
+   * @param {Object} links - Links analysis
+   * @returns {Object} Internal linking validation result
+   */
+  validateInternalLinking(links) {
+    const validation = {
+      score: 0,
+      internalCount: links?.internal || 0,
+      externalCount: links?.external || 0,
+      issues: [],
+      recommendations: []
+    };
+
+    const totalLinks = validation.internalCount + validation.externalCount;
+
+    if (totalLinks === 0) {
+      validation.issues.push('No links found on page');
+      validation.recommendations.push('Add relevant internal and external links');
+      validation.score = 30;
+      return validation;
+    }
+
+    if (validation.internalCount === 0) {
+      validation.issues.push('No internal links found');
+      validation.recommendations.push('Add 2-5 contextual internal links to related pages');
+      validation.score = 40;
+    } else if (validation.internalCount < 2) {
+      validation.issues.push('Too few internal links');
+      validation.recommendations.push('Add more internal links to improve site navigation');
+      validation.score = 60;
+    } else if (validation.internalCount > 10) {
+      validation.issues.push('Too many internal links may dilute link equity');
+      validation.recommendations.push('Focus on 3-8 high-quality internal links');
+      validation.score = 80;
+    } else {
+      validation.score = 100;
+    }
+
+    return validation;
+  }
+
+  /**
+   * Validate technical SEO elements
+   * @param {Object} technical - Technical SEO data
+   * @returns {Object} Technical SEO validation result
+   */
+  validateTechnicalSEO(technical) {
+    const validation = {
+      score: 0,
+      issues: [],
+      recommendations: []
+    };
+
+    let score = 0;
+    let checks = 0;
+
+    // Meta viewport check
+    if (technical?.viewport) {
+      score += 25;
+    } else {
+      validation.issues.push('Missing or incorrect viewport meta tag');
+      validation.recommendations.push('Add viewport meta tag for mobile optimization');
+    }
+    checks++;
+
+    // Canonical URL check
+    if (technical?.canonical) {
+      score += 25;
+    } else {
+      validation.issues.push('Missing canonical URL');
+      validation.recommendations.push('Add canonical URL to prevent duplicate content issues');
+    }
+    checks++;
+
+    // Language attribute check
+    if (technical?.lang) {
+      score += 25;
+    } else {
+      validation.issues.push('Missing language attribute');
+      validation.recommendations.push('Add language attribute to html tag');
+    }
+    checks++;
+
+    // Robots meta check
+    if (technical?.robots && !technical.robots.includes('noindex')) {
+      score += 25;
+    } else if (technical?.robots?.includes('noindex')) {
+      validation.issues.push('Page is set to noindex');
+      validation.recommendations.push('Remove noindex if page should be indexed');
+    } else {
+      validation.issues.push('Missing or unclear robots directive');
+      validation.recommendations.push('Add appropriate robots meta tag');
+    }
+    checks++;
+
+    validation.score = Math.round(score / checks * 100);
+
+    return validation;
+  }
+
+  /**
+   * Generate SEO optimization priority matrix
+   * @param {Object} validation - SEO validation results
+   * @returns {Array} Priority matrix
+   */
+  generateSEOPriorityMatrix(validation) {
+    const priorities = [];
+
+    // Critical issues (score < 50)
+    Object.keys(validation).forEach(area => {
+      const item = validation[area];
+      if (typeof item === 'object' && item.score !== undefined && item.score < 50) {
+        priorities.push({
+          area: area,
+          priority: 'critical',
+          score: item.score,
+          impact: 'high',
+          effort: this.getImplementationEffort(area),
+          issues: item.issues || [],
+          recommendations: item.recommendations || []
+        });
+      }
+    });
+
+    // High priority issues (score 50-70)
+    Object.keys(validation).forEach(area => {
+      const item = validation[area];
+      if (typeof item === 'object' && item.score !== undefined && item.score >= 50 && item.score < 70) {
+        priorities.push({
+          area: area,
+          priority: 'high',
+          score: item.score,
+          impact: 'medium',
+          effort: this.getImplementationEffort(area),
+          issues: item.issues || [],
+          recommendations: item.recommendations || []
+        });
+      }
+    });
+
+    // Sort by priority and impact
+    return priorities.sort((a, b) => {
+      const priorityOrder = { 'critical': 0, 'high': 1, 'medium': 2, 'low': 3 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+  }
+
+  /**
+   * Get implementation effort for SEO area
+   * @param {string} area - SEO area
+   * @returns {string} Effort level
+   */
+  getImplementationEffort(area) {
+    const effortMap = {
+      'titleTag': 'low',
+      'metaDescription': 'low',
+      'headingStructure': 'medium',
+      'contentLength': 'high',
+      'imageOptimization': 'medium',
+      'internalLinking': 'medium',
+      'technicalSEO': 'medium'
+    };
+
+    return effortMap[area] || 'medium';
   }
 
   /**

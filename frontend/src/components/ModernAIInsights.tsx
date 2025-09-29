@@ -4,7 +4,6 @@ import {
   Target,
   TrendingUp,
   Zap,
-  Eye,
   Copy,
   ChevronRight,
   BarChart3,
@@ -21,7 +20,7 @@ import {
   Activity
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { ConcreteOptimization, SearchIntentAnalysis, AIInsights, ProfessionalAnalysisResult, ImmediateOptimization, ContentOptimization, TechnicalEnhancement } from '@/types';
+import { ConcreteOptimization, AIInsights, ProfessionalAnalysisResult } from '@/types';
 import { parseAISummary, ParsedSummarySection } from '@/lib/utils';
 
 interface ModernAIInsightsProps {
@@ -30,6 +29,8 @@ interface ModernAIInsightsProps {
   currentMetaDescription?: string;
   url: string;
   professionalAnalysis?: ProfessionalAnalysisResult;
+  seoValidation?: Record<string, any>;
+  priorityMatrix?: Record<string, any>[];
 }
 
 // Structured Summary Component
@@ -124,7 +125,8 @@ export function ModernAIInsights({
   insights,
   currentTitle = "",
   currentMetaDescription = "",
-  url
+  seoValidation,
+  priorityMatrix
 }: ModernAIInsightsProps) {
   const [activeOptimization, setActiveOptimization] = useState<string | null>(null);
   const [copiedOptimization, setCopiedOptimization] = useState<string | null>(null);
@@ -158,17 +160,18 @@ export function ModernAIInsights({
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800 border-green-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'hard': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   return (
     <div className="space-y-8">
+      {/* SEO Validation Dashboard */}
+      {seoValidation && (
+        <SEOValidationDashboard
+          validation={seoValidation}
+          priorityMatrix={priorityMatrix}
+          currentTitle={currentTitle}
+          currentMetaDescription={currentMetaDescription}
+        />
+      )}
+
       {/* Hero AI Insights Card */}
       <Card className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 border-0 text-white overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20"></div>
@@ -365,6 +368,150 @@ export function ModernAIInsights({
                       {action.category}
                     </span>
                   </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// SEO Validation Dashboard Component
+function SEOValidationDashboard({
+  validation,
+  priorityMatrix
+}: {
+  validation: Record<string, any>;
+  priorityMatrix?: Record<string, any>[];
+  currentTitle: string;
+  currentMetaDescription: string;
+}) {
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
+    if (score >= 60) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    if (score >= 40) return 'text-orange-600 bg-orange-50 border-orange-200';
+    return 'text-red-600 bg-red-50 border-red-200';
+  };
+
+  const getScoreIcon = (score: number) => {
+    if (score >= 80) return <CheckCircle2 className="w-5 h-5" />;
+    if (score >= 60) return <Clock className="w-5 h-5" />;
+    return <AlertCircle className="w-5 h-5" />;
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'critical': return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case 'high': return <ArrowRight className="w-4 h-4 text-orange-500" />;
+      case 'medium': return <Clock className="w-4 h-4 text-yellow-500" />;
+      default: return <CheckCircle2 className="w-4 h-4 text-blue-500" />;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Overall SEO Score */}
+      <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
+        <CardHeader>
+          <CardTitle className="flex items-center text-slate-800">
+            <div className="bg-slate-200 p-2 rounded-lg mr-3">
+              <BarChart3 className="w-5 h-5 text-slate-600" />
+            </div>
+            SEO Health Score
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-slate-800 mb-1">
+                {validation.overallScore}%
+              </div>
+              <div className="text-sm text-slate-600">Overall Score</div>
+            </div>
+
+            {Object.entries(validation).filter(([, value]) =>
+              typeof value === 'object' && value !== null && 'score' in value
+            ).map(([area, data]: [string, any]) => (
+              <div key={area} className="text-center">
+                <div className={`flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-2 ${getScoreColor(data.score)}`}>
+                  {getScoreIcon(data.score)}
+                </div>
+                <div className="text-lg font-semibold text-slate-800">{data.score}%</div>
+                <div className="text-xs text-slate-600 capitalize">
+                  {area.replace(/([A-Z])/g, ' $1').trim()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Priority Matrix */}
+      {priorityMatrix && priorityMatrix.length > 0 && (
+        <Card className="border border-red-200">
+          <CardHeader>
+            <CardTitle className="flex items-center text-red-800">
+              <div className="bg-red-100 p-2 rounded-lg mr-3">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              Critical SEO Issues to Fix First
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {priorityMatrix.slice(0, 5).map((item: Record<string, any>, idx: number) => (
+                <div key={idx} className="bg-white rounded-lg border border-slate-200 p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      {getPriorityIcon(item.priority)}
+                      <span className="font-semibold text-slate-800 capitalize">
+                        {item.area.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.priority === 'critical' ? 'bg-red-100 text-red-800' :
+                        item.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {item.priority} priority
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-slate-600">Score:</span>
+                      <span className={`font-bold ${getScoreColor(item.score).split(' ')[0]}`}>
+                        {item.score}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {item.issues && item.issues.length > 0 && (
+                    <div className="mb-3">
+                      <div className="text-sm font-medium text-red-600 mb-2">Issues:</div>
+                      <ul className="space-y-1">
+                        {item.issues.map((issue: string, issueIdx: number) => (
+                          <li key={issueIdx} className="flex items-start space-x-2 text-sm">
+                            <span className="w-1.5 h-1.5 bg-red-400 rounded-full flex-shrink-0 mt-2"></span>
+                            <span className="text-red-700">{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {item.recommendations && item.recommendations.length > 0 && (
+                    <div>
+                      <div className="text-sm font-medium text-blue-600 mb-2">Quick Fixes:</div>
+                      <ul className="space-y-1">
+                        {item.recommendations.slice(0, 2).map((rec: string, recIdx: number) => (
+                          <li key={recIdx} className="flex items-start space-x-2 text-sm">
+                            <ArrowRight className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-blue-700">{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

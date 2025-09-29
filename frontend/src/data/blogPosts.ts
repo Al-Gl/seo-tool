@@ -1660,10 +1660,10 @@ export const blogPosts: BlogPost[] = [
       <h4>Lazy Loading</h4>
       <p>Load images only when they're about to enter the viewport:</p>
       <ul>
-        <li>Use native `loading="lazy"` attribute</li>
+        <li>Use native \`loading="lazy"\` attribute</li>
         <li>Implement JavaScript libraries for advanced control</li>
         <li>Don't lazy load above-the-fold images</li>
-        <li>Consider `loading="eager"` for critical images</li>
+        <li>Consider \`loading="eager"\` for critical images</li>
       </ul>
 
       <h4>Progressive Loading</h4>
