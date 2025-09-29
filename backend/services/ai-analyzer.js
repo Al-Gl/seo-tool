@@ -55,15 +55,17 @@ class AIAnalyzer {
   async analyzeCrawlData(crawlData, prompts = []) {
     try {
       const startTime = Date.now();
-      console.log(`Starting AI analysis for: ${crawlData.url}`);
+      console.log(`🚀 Starting AI analysis for: ${crawlData.url}`);
 
       // Prepare structured data for analysis
+      console.log('📊 Preparing structured data for analysis...');
       const structuredData = this.prepareDataForAnalysis(crawlData);
-      
+
       // Execute analysis prompts
       const analysisResults = {};
       const promptResults = [];
 
+      console.log(`📝 Executing ${prompts.length} analysis prompts...`);
       for (const prompt of prompts) {
         try {
           const promptResult = await this.executePrompt(prompt, structuredData);
@@ -74,11 +76,11 @@ class AIAnalyzer {
             result: promptResult,
             executedAt: new Date().toISOString()
           });
-          
+
           analysisResults[prompt.name] = promptResult;
-          console.log(`Completed prompt: ${prompt.name}`);
+          console.log(`✅ Completed prompt: ${prompt.name}`);
         } catch (error) {
-          console.error(`Failed to execute prompt ${prompt.name}:`, error);
+          console.error(`❌ Failed to execute prompt ${prompt.name}:`, error.message);
           promptResults.push({
             promptId: prompt.id,
             promptName: prompt.name,
@@ -90,14 +92,37 @@ class AIAnalyzer {
       }
 
       // Generate comprehensive SEO analysis
+      console.log('🔍 Generating comprehensive SEO analysis...');
       const comprehensiveAnalysis = await this.generateComprehensiveAnalysis(structuredData);
+      console.log('✅ Comprehensive analysis complete');
 
       // Calculate SEO validation scores
+      console.log('📊 Calculating SEO validation scores...');
       const seoValidation = this.calculateSEOValidationScores(crawlData);
       const priorityMatrix = this.generateSEOPriorityMatrix(seoValidation);
+      console.log('✅ SEO validation complete');
 
       // Calculate analysis duration
       const analysisTime = Date.now() - startTime;
+
+      console.log('📝 Generating summary and recommendations...');
+      let summary, recommendations;
+
+      try {
+        summary = await this.generateSummary(crawlData, comprehensiveAnalysis);
+        console.log('✅ Summary generated successfully');
+      } catch (error) {
+        console.error('❌ Summary generation failed:', error.message);
+        summary = 'Summary generation failed. Please review the detailed analysis below.';
+      }
+
+      try {
+        recommendations = await this.generateRecommendations(crawlData, comprehensiveAnalysis);
+        console.log(`✅ Generated ${recommendations.length} recommendations`);
+      } catch (error) {
+        console.error('❌ Recommendations generation failed:', error.message);
+        recommendations = [];
+      }
 
       const result = {
         url: crawlData.url,
@@ -119,16 +144,17 @@ class AIAnalyzer {
         seoScores: this.calculateSEOScores(crawlData, comprehensiveAnalysis),
 
         // Summary and recommendations
-        summary: await this.generateSummary(crawlData, comprehensiveAnalysis),
-        recommendations: await this.generateRecommendations(crawlData, comprehensiveAnalysis)
+        summary: summary,
+        recommendations: recommendations
       };
 
-      console.log(`AI analysis completed in ${analysisTime}ms`);
+      console.log(`✅ AI analysis completed in ${analysisTime}ms with ${recommendations.length} recommendations`);
       return result;
 
     } catch (error) {
-      console.error('AI analysis failed:', error);
-      throw error;
+      console.error('❌ AI analysis failed:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      throw new Error(`AI analysis failed: ${error.message}`);
     }
   }
 
@@ -545,6 +571,7 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
 `;
 
     try {
+      console.log('🤖 Generating AI recommendations...');
       const result = await this.model.generateContent({
         contents: [{ role: 'user', parts: [{ text: recommendationsPrompt }] }],
         generationConfig: this.generationConfig,
@@ -552,20 +579,28 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       });
 
       const response = result.response.text();
+      console.log('📝 AI response received, length:', response.length);
+      console.log('📄 First 500 chars of response:', response.substring(0, 500));
 
       // Enhanced JSON parsing with multiple extraction methods
       const parsedRecommendations = this.parseRecommendationsResponse(response);
-      if (parsedRecommendations) {
-        console.log(`Successfully parsed ${parsedRecommendations.length} recommendations`);
+      if (parsedRecommendations && Array.isArray(parsedRecommendations) && parsedRecommendations.length > 0) {
+        console.log(`✅ Successfully parsed ${parsedRecommendations.length} recommendations`);
         return parsedRecommendations;
       }
 
       // Fallback: create properly structured recommendation from raw text
-      console.warn('Could not parse JSON from recommendations, creating structured fallback');
-      return this.createFallbackRecommendation(response);
+      console.warn('⚠️ Could not parse JSON from recommendations, creating structured fallback');
+      console.log('📄 Full AI response for debugging:', response);
+      const fallbackRecs = this.createFallbackRecommendation(response);
+      console.log(`✅ Created ${fallbackRecs.length} fallback recommendations`);
+      return fallbackRecs;
 
     } catch (error) {
-      console.error('Recommendations generation failed:', error);
+      console.error('❌ Recommendations generation failed:', error);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      // Return empty array to prevent analysis from failing completely
       return [];
     }
   }
@@ -1169,50 +1204,67 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
    * @returns {Array} Structured recommendation array
    */
   createFallbackRecommendation(rawResponse) {
-    console.log('Creating fallback recommendations from raw response');
+    console.log('📦 Creating fallback recommendations from raw response');
 
     // Method 1: Try to extract partial JSON objects from text
-    const partialJsonRecs = this.extractPartialJsonFromText(rawResponse);
-    if (partialJsonRecs.length > 0) {
-      console.log('Extracted', partialJsonRecs.length, 'recommendations from partial JSON');
-      return partialJsonRecs;
+    try {
+      const partialJsonRecs = this.extractPartialJsonFromText(rawResponse);
+      if (partialJsonRecs.length > 0) {
+        console.log(`✅ Extracted ${partialJsonRecs.length} recommendations from partial JSON`);
+        // Validate each recommendation
+        const validated = this.ensureRecommendationsValid(partialJsonRecs);
+        if (validated.length > 0) return validated;
+      }
+    } catch (error) {
+      console.warn('⚠️ Partial JSON extraction failed:', error.message);
     }
 
     // Method 2: Parse structured text patterns
-    const structuredRecs = this.extractStructuredRecommendations(rawResponse);
-    if (structuredRecs.length > 0) {
-      console.log('Extracted', structuredRecs.length, 'recommendations from structured text');
-      return structuredRecs;
+    try {
+      const structuredRecs = this.extractStructuredRecommendations(rawResponse);
+      if (structuredRecs.length > 0) {
+        console.log(`✅ Extracted ${structuredRecs.length} recommendations from structured text`);
+        const validated = this.ensureRecommendationsValid(structuredRecs);
+        if (validated.length > 0) return validated;
+      }
+    } catch (error) {
+      console.warn('⚠️ Structured text extraction failed:', error.message);
     }
 
     // Method 3: Look for obvious recommendation patterns
-    const patternRecs = this.extractRecommendationSections(rawResponse);
-    if (patternRecs.length > 0) {
-      console.log('Extracted', patternRecs.length, 'recommendations from text patterns');
-      return patternRecs.map((section, index) => ({
-        difficulty: 'intermediate',
-        priority: 'medium',
-        category: 'general',
-        title: section.title || `Recommendation ${index + 1}`,
-        whyItMatters: section.why || section.description || 'This improvement will help your website\'s SEO performance.',
-        beginnerGuide: {
-          whatToDo: section.howTo || section.description || 'Please review the detailed analysis for specific steps.',
-          whereToFind: 'Check your website\'s admin panel or content management system.',
-          timeNeeded: '30-60 minutes',
-          helpfulTips: 'Make sure to backup your website before making changes.'
-        },
-        technicalDetails: {
-          implementation: section.technical || 'Consult with a developer if needed.',
-          testingSteps: 'Test your changes and verify they work correctly.'
-        },
-        expectedOutcome: 'Improved SEO performance and user experience.',
-        impact: 'medium',
-        effort: 'medium'
-      }));
+    try {
+      const patternRecs = this.extractRecommendationSections(rawResponse);
+      if (patternRecs.length > 0) {
+        console.log(`✅ Extracted ${patternRecs.length} recommendations from text patterns`);
+        const mapped = patternRecs.map((section, index) => ({
+          difficulty: 'intermediate',
+          priority: 'medium',
+          category: 'general',
+          title: section.title || `Recommendation ${index + 1}`,
+          whyItMatters: section.why || section.description || 'This improvement will help your website\'s SEO performance.',
+          beginnerGuide: {
+            whatToDo: section.howTo || section.description || 'Please review the detailed analysis for specific steps.',
+            whereToFind: 'Check your website\'s admin panel or content management system.',
+            timeNeeded: '30-60 minutes',
+            helpfulTips: 'Make sure to backup your website before making changes.'
+          },
+          technicalDetails: {
+            implementation: section.technical || 'Consult with a developer if needed.',
+            testingSteps: 'Test your changes and verify they work correctly.'
+          },
+          expectedOutcome: 'Improved SEO performance and user experience.',
+          impact: 'medium',
+          effort: 'medium'
+        }));
+        const validated = this.ensureRecommendationsValid(mapped);
+        if (validated.length > 0) return validated;
+      }
+    } catch (error) {
+      console.warn('⚠️ Pattern extraction failed:', error.message);
     }
 
-    // Last resort: create a single recommendation with cleaned text
-    console.log('Creating single fallback recommendation');
+    // Last resort: create a guaranteed valid recommendation with cleaned text
+    console.log('📦 Creating guaranteed fallback recommendation');
     return [{
       difficulty: 'intermediate',
       priority: 'high',
@@ -1233,6 +1285,57 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       impact: 'high',
       effort: 'low'
     }];
+  }
+
+  /**
+   * Ensure recommendations array is valid and properly structured
+   * @param {Array} recommendations - Recommendations to validate
+   * @returns {Array} Valid recommendations
+   */
+  ensureRecommendationsValid(recommendations) {
+    if (!Array.isArray(recommendations)) {
+      console.warn('⚠️ Recommendations is not an array');
+      return [];
+    }
+
+    const valid = recommendations.filter(rec => {
+      // Must have title
+      if (!rec || !rec.title) return false;
+
+      // Must have required structure
+      if (!rec.difficulty || !rec.whyItMatters) {
+        // Try to fix missing fields
+        rec.difficulty = rec.difficulty || 'intermediate';
+        rec.priority = rec.priority || 'medium';
+        rec.category = rec.category || 'general';
+        rec.whyItMatters = rec.whyItMatters || 'This will improve your SEO.';
+        rec.impact = rec.impact || 'medium';
+        rec.effort = rec.effort || 'medium';
+        rec.expectedOutcome = rec.expectedOutcome || 'Improved SEO performance.';
+
+        // Ensure nested objects exist
+        if (!rec.beginnerGuide || typeof rec.beginnerGuide !== 'object') {
+          rec.beginnerGuide = {
+            whatToDo: 'Follow the implementation steps.',
+            whereToFind: 'Check your website settings.',
+            timeNeeded: '30 minutes',
+            helpfulTips: 'Test your changes carefully.'
+          };
+        }
+
+        if (!rec.technicalDetails || typeof rec.technicalDetails !== 'object') {
+          rec.technicalDetails = {
+            implementation: 'See detailed guidance.',
+            testingSteps: 'Verify changes work correctly.'
+          };
+        }
+      }
+
+      return true;
+    });
+
+    console.log(`✅ Validated ${valid.length} of ${recommendations.length} recommendations`);
+    return valid;
   }
 
   /**

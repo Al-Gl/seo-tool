@@ -341,114 +341,185 @@ router.delete('/:id', async (req, res) => {
  */
 async function processAnalysis(analysisId, url, promptIds, options) {
   const client = await getClient();
-  
+
   try {
     await client.query('BEGIN');
 
     // Update status to processing
     await client.query(`
-      UPDATE analyses 
+      UPDATE analyses
       SET status = $1, updated_at = CURRENT_TIMESTAMP
       WHERE id = $2
     `, ['processing', analysisId]);
 
-    console.log(`Starting crawl for analysis: ${analysisId}`);
+    console.log(`🚀 Starting crawl for analysis: ${analysisId}`);
+    console.log(`🔗 URL: ${url}`);
 
     // Step 1: Crawl the URL
-    const crawlData = await crawler.crawlUrl(url);
+    let crawlData;
+    try {
+      crawlData = await crawler.crawlUrl(url);
+      console.log(`✅ Crawl completed for analysis: ${analysisId}`);
+      console.log(`📊 Crawl data size: ${JSON.stringify(crawlData).length} bytes`);
+    } catch (crawlError) {
+      console.error(`❌ Crawl failed for ${analysisId}:`, crawlError.message);
+      throw new Error(`Failed to crawl URL: ${crawlError.message}`);
+    } finally {
+      // Always close the browser to free up memory
+      try {
+        await crawler.close();
+        console.log(`🔒 Browser closed for ${analysisId}`);
+      } catch (closeError) {
+        console.warn(`⚠️ Failed to close browser:`, closeError.message);
+      }
+    }
 
-    // --- ADD THIS LINE TO SHUT DOWN THE BROWSER AND FREE UP MEMORY ---
-    await crawler.close();
-    
     // Store crawl data
-    await client.query(`
-      UPDATE analyses 
-      SET crawl_data = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-    `, [JSON.stringify(crawlData), analysisId]);
-
-    console.log(`Crawl completed for analysis: ${analysisId}`);
+    try {
+      await client.query(`
+        UPDATE analyses
+        SET crawl_data = $1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+      `, [JSON.stringify(crawlData), analysisId]);
+      console.log(`💾 Crawl data stored for ${analysisId}`);
+    } catch (storageError) {
+      console.error(`❌ Failed to store crawl data:`, storageError.message);
+      throw new Error(`Failed to store crawl data: ${storageError.message}`);
+    }
 
     // Step 2: Get prompts (use defaults if none specified)
     let prompts = [];
-    if (promptIds.length > 0) {
-      const promptsResult = await client.query(`
-        SELECT * FROM prompts WHERE id = ANY($1) AND is_active = true
-      `, [promptIds]);
-      prompts = promptsResult.rows;
-    } else {
-      // Use default prompts
-      const defaultPromptsResult = await client.query(`
-        SELECT * FROM prompts 
-        WHERE category IN ('technical', 'content', 'competitive') 
-        AND is_active = true 
-        ORDER BY category
-      `);
-      prompts = defaultPromptsResult.rows;
+    try {
+      if (promptIds.length > 0) {
+        const promptsResult = await client.query(`
+          SELECT * FROM prompts WHERE id = ANY($1) AND is_active = true
+        `, [promptIds]);
+        prompts = promptsResult.rows;
+      } else {
+        // Use default prompts
+        const defaultPromptsResult = await client.query(`
+          SELECT * FROM prompts
+          WHERE category IN ('technical', 'content', 'competitive')
+          AND is_active = true
+          ORDER BY category
+        `);
+        prompts = defaultPromptsResult.rows;
+      }
+      console.log(`✅ Using ${prompts.length} prompts for analysis: ${analysisId}`);
+    } catch (promptError) {
+      console.error(`❌ Failed to fetch prompts:`, promptError.message);
+      throw new Error(`Failed to fetch prompts: ${promptError.message}`);
     }
 
-    console.log(`Using ${prompts.length} prompts for analysis: ${analysisId}`);
-
     // Step 3: Run AI analysis
-    const aiAnalysis = await aiAnalyzer.analyzeCrawlData(crawlData, prompts);
-
+    let aiAnalysis;
+    try {
+      console.log(`🤖 Starting AI analysis for ${analysisId}...`);
+      aiAnalysis = await aiAnalyzer.analyzeCrawlData(crawlData, prompts);
+      console.log(`✅ AI analysis completed for ${analysisId}`);
+      console.log(`📊 AI analysis result size: ${JSON.stringify(aiAnalysis).length} bytes`);
+      console.log(`📝 Recommendations count: ${aiAnalysis.recommendations?.length || 0}`);
+    } catch (aiError) {
+      console.error(`❌ AI analysis failed for ${analysisId}:`, aiError.message);
+      console.error(`❌ AI error stack:`, aiError.stack);
+      throw new Error(`AI analysis failed: ${aiError.message}`);
+    }
 
     // Store AI analysis
-    await client.query(`
-      UPDATE analyses 
-      SET ai_insights = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-    `, [JSON.stringify(aiAnalysis), analysisId]);
+    try {
+      await client.query(`
+        UPDATE analyses
+        SET ai_insights = $1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+      `, [JSON.stringify(aiAnalysis), analysisId]);
+      console.log(`💾 AI insights stored for ${analysisId}`);
+    } catch (storageError) {
+      console.error(`❌ Failed to store AI insights:`, storageError.message);
+      throw new Error(`Failed to store AI insights: ${storageError.message}`);
+    }
 
     // Step 4: Store individual prompt results
-    for (const promptResult of aiAnalysis.promptResults) {
-      await client.query(`
-        INSERT INTO analysis_prompts (analysis_id, prompt_id, response)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (analysis_id, prompt_id) 
-        DO UPDATE SET response = $3, created_at = CURRENT_TIMESTAMP
-      `, [analysisId, promptResult.promptId, JSON.stringify(promptResult)]);
+    try {
+      for (const promptResult of aiAnalysis.promptResults) {
+        await client.query(`
+          INSERT INTO analysis_prompts (analysis_id, prompt_id, response)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (analysis_id, prompt_id)
+          DO UPDATE SET response = $3, created_at = CURRENT_TIMESTAMP
+        `, [analysisId, promptResult.promptId, JSON.stringify(promptResult)]);
+      }
+      console.log(`💾 Stored ${aiAnalysis.promptResults.length} prompt results for ${analysisId}`);
+    } catch (promptStorageError) {
+      console.error(`❌ Failed to store prompt results:`, promptStorageError.message);
+      // Don't throw here, this is not critical
     }
 
     // Step 5: Create SEO analysis summary
     const seoAnalysis = {
-      scores: aiAnalysis.seoScores,
-      summary: aiAnalysis.summary,
-      recommendations: aiAnalysis.recommendations,
-      comprehensiveAnalysis: aiAnalysis.comprehensiveAnalysis,
-      analysisTime: aiAnalysis.analysisTime,
+      scores: aiAnalysis.seoScores || {},
+      summary: aiAnalysis.summary || 'Analysis completed successfully',
+      recommendations: Array.isArray(aiAnalysis.recommendations) ? aiAnalysis.recommendations : [],
+      comprehensiveAnalysis: aiAnalysis.comprehensiveAnalysis || {},
+      analysisTime: aiAnalysis.analysisTime || 0,
       promptCount: prompts.length
     };
+    console.log(`📊 SEO analysis summary created with ${seoAnalysis.recommendations.length} recommendations`);
 
     // Step 6: Mark as completed
-    await client.query(`
-      UPDATE analyses 
-      SET status = $1, 
-          seo_analysis = $2, 
-          completed_at = CURRENT_TIMESTAMP, 
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $3
-    `, ['completed', JSON.stringify(seoAnalysis), analysisId]);
+    try {
+      await client.query(`
+        UPDATE analyses
+        SET status = $1,
+            seo_analysis = $2,
+            completed_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+      `, ['completed', JSON.stringify(seoAnalysis), analysisId]);
+      console.log(`✅ Analysis marked as completed: ${analysisId}`);
+    } catch (completionError) {
+      console.error(`❌ Failed to mark analysis as completed:`, completionError.message);
+      throw new Error(`Failed to mark analysis as completed: ${completionError.message}`);
+    }
 
     await client.query('COMMIT');
-    
-    console.log(`Analysis completed successfully: ${analysisId}`);
+
+    console.log(`✅✅✅ Analysis completed successfully: ${analysisId}`);
 
   } catch (error) {
     await client.query('ROLLBACK');
-    
-    // Update analysis status to failed
-    await client.query(`
-      UPDATE analyses 
-      SET status = $1, 
-          error_message = $2, 
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $3
-    `, ['failed', error.message, analysisId]);
 
-    console.error(`Analysis failed: ${analysisId}`, error);
+    console.error(`❌❌❌ Analysis failed: ${analysisId}`);
+    console.error(`❌ Error message:`, error.message);
+    console.error(`❌ Error stack:`, error.stack);
+
+    // Create detailed error message
+    const errorMessage = error.message || 'Unknown error occurred';
+    const errorDetails = {
+      message: errorMessage,
+      timestamp: new Date().toISOString(),
+      url: url,
+      phase: error.message.includes('crawl') ? 'crawling' :
+             error.message.includes('AI') ? 'ai_analysis' :
+             error.message.includes('store') || error.message.includes('storage') ? 'data_storage' :
+             'unknown'
+    };
+
+    // Update analysis status to failed with detailed error
+    try {
+      await client.query(`
+        UPDATE analyses
+        SET status = $1,
+            error_message = $2,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+      `, ['failed', JSON.stringify(errorDetails), analysisId]);
+      console.log(`💾 Error details stored for ${analysisId}`);
+    } catch (updateError) {
+      console.error(`❌ Failed to update error status:`, updateError.message);
+    }
+
     throw error;
-    
+
   } finally {
     client.release();
   }
