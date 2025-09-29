@@ -1729,8 +1729,8 @@ export const blogPosts: BlogPost[] = [
 
       <h4>JavaScript Loading Strategies</h4>
       <ul>
-        <li><strong>Defer non-critical scripts:</strong> Use `defer` attribute</li>
-        <li><strong>Async loading:</strong> Use `async` for independent scripts</li>
+        <li><strong>Defer non-critical scripts:</strong> Use \`defer\` attribute</li>
+        <li><strong>Async loading:</strong> Use \`async\` for independent scripts</li>
         <li><strong>Module loading:</strong> Use ES modules with appropriate loading</li>
         <li><strong>Tree shaking:</strong> Eliminate unused code from bundles</li>
         <li><strong>Preloading:</strong> Preload critical JavaScript resources</li>
