@@ -13,6 +13,7 @@ node_modules/
 /frontend/out/
 /frontend/build/
 /backend/dist/
+/backend/nul
 
 # Logs
 *.log

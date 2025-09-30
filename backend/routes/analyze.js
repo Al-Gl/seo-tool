@@ -17,7 +17,18 @@ const router = express.Router();
 
 // Initialize services
 const crawler = new WebCrawler();
-const aiAnalyzer = new AIAnalyzer();
+
+let aiAnalyzer;
+try {
+  aiAnalyzer = new AIAnalyzer();
+  console.log('✅ AI Analyzer initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize AI Analyzer:', error.message);
+  console.error('⚠️ Please ensure GEMINI_API_KEY is set in backend/.env file');
+  console.error('⚠️ Current GEMINI_API_KEY status:', process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET');
+  throw new Error(`AI Analyzer initialization failed: ${error.message}`);
+}
+
 const promptManager = new PromptManager();
 
 /**

@@ -5,7 +5,8 @@
 
 console.log('--- SERVER.JS FILE V3 STARTED ---');
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
