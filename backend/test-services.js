@@ -80,13 +80,13 @@ async function testServices() {
     const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
     const message = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-sonnet-20240229',
       max_tokens: 50,
       messages: [{ role: 'user', content: 'Test' }]
     });
 
     console.log(`   ✅ Claude API connected successfully`);
-    console.log(`   🤖 Model: claude-3-5-sonnet-20241022`);
+    console.log(`   🤖 Model: claude-3-sonnet-20240229`);
     console.log(`   💬 Test response received (${message.content[0].text.length} chars)`);
   } catch (error) {
     console.log(`   ❌ Claude API failed: ${error.message}`);
