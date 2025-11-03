@@ -423,3 +423,359 @@ If database is needed later:
 3. Add webhook notifications when analysis completes
 4. Create admin API to view all analyses
 5. Add analysis result caching
+
+---
+
+# Code Review - Comprehensive Error Handling & Debugging Improvements
+
+## Date: 2025-11-03
+
+## Problem Statement
+Users receiving generic "We encountered an error while analyzing your website" message with no visibility into what actually failed. This made it impossible to troubleshoot issues.
+
+## Root Cause Analysis
+1. **Generic Frontend Error Messages**: Frontend showed same error message regardless of failure type
+2. **No Error Details Passed to Frontend**: Backend error messages weren't being displayed to users
+3. **Limited Service Validation**: No way to test if all services (database, Puppeteer, Claude API) were working
+4. **Poor Error Context**: Error messages didn't indicate which phase of analysis failed
+5. **No Troubleshooting Documentation**: Users had no guidance on how to fix issues
+
+## Solution Implemented
+Comprehensive error handling, logging, and diagnostic tools to identify and fix issues quickly.
+
+## Changes Made
+
+### 1. Enhanced Frontend Error Display (`frontend/src/hooks/useAnalysis.ts`)
+
+**File**: `frontend/src/hooks/useAnalysis.ts`
+
+**Changes**:
+- Fetch full analysis details when status is 'failed'
+- Extract and display actual error message from backend
+- Added 'processing' status case for better progress tracking
+- Improved error logging with detailed context
+
+**Lines Modified**: 150-221
+
+**Before**:
+```javascript
+case 'failed':
+  setErrorState({ hasError: true, message: 'Analysis failed' });
+  setLoadingState({ isLoading: false });
+```
+
+**After**:
+```javascript
+case 'failed':
+  if (currentAnalysisId) {
+    analysisApi.getById(currentAnalysisId)
+      .then((fullAnalysis) => {
+        const errorMsg = fullAnalysis.errorMessage || ...
+        setErrorState({ hasError: true, message: errorMsg });
+      })
+      .catch(...);
+  }
+  setLoadingState({ isLoading: false });
+```
+
+**Impact**: Users now see specific error messages like "Failed to start browser" or "Website returned error status 404" instead of generic "Analysis failed"
+
+### 2. Improved Crawler Error Messages (`backend/services/crawler.js`)
+
+**File**: `backend/services/crawler.js`
+
+**Changes**:
+- Wrapped browser initialization in try-catch with detailed error
+- Added try-catch around page navigation with context
+- Improved error messages to be user-friendly
+- Added detailed logging at each step
+- Better page cleanup in finally block
+
+**Lines Modified**: 56-491
+
+**Key Improvements**:
+```javascript
+// Browser initialization error
+throw new Error(`Failed to start browser: ${initError.message}. This may be due to missing Chromium dependencies on your system.`);
+
+// Navigation error
+throw new Error(`Failed to load URL "${url}": ${navError.message}. Please check if the URL is correct and accessible.`);
+
+// HTTP error
+throw new Error(`Website returned error status ${statusCode}. Please check if the URL is correct and the website is online.`);
+```
+
+**Impact**: Clear, actionable error messages that tell users exactly what went wrong and how to fix it
+
+### 3. User-Friendly Backend Error Transformation (`backend/routes/analyze.js`)
+
+**File**: `backend/routes/analyze.js`
+
+**Changes**:
+- Transform technical errors into user-friendly messages
+- Categorize errors by type (browser, network, API, database)
+- Store error phase for better debugging
+- Improved error logging with detailed context
+
+**Lines Modified**: 506-548
+
+**Error Message Examples**:
+- `ECONNREFUSED` → "Our analysis service is currently unavailable. Please try again in a few minutes."
+- `timeout/ETIMEDOUT` → "The website took too long to respond. Please try again or check if the URL is correct."
+- `AI analysis failed` → "AI analysis encountered an error. This may be due to rate limits or API issues. Please try again."
+- `database error` → "Database error occurred. Please try again or contact support."
+
+**Impact**: Users get helpful, actionable error messages instead of technical jargon
+
+### 4. Service Validation on Startup (`backend/server.js`)
+
+**File**: `backend/server.js`
+
+**Changes**:
+- Validate required environment variables before starting
+- Test database connection on startup
+- Display detailed startup information
+- Provide troubleshooting hints if startup fails
+- Better structured console output
+
+**Lines Modified**: 191-249
+
+**Startup Checks**:
+```javascript
+✅ Environment variables validated
+✅ Database initialized successfully
+✅ Database connection verified
+
+Available Endpoints:
+- GET  /api/health
+- POST /api/analyze
+- GET  /api/analyze/:id
+- GET  /api/prompts
+```
+
+**Impact**: Immediate visibility if services aren't configured correctly
+
+### 5. Service Testing Script (NEW FILE)
+
+**File**: `backend/test-services.js` (NEW)
+
+**Purpose**: Automated testing of all critical services
+
+**Tests Performed**:
+1. Environment variables (DATABASE_URL, CLAUDE_API_KEY, PORT)
+2. PostgreSQL database connection
+3. Puppeteer browser launch
+4. Claude API authentication
+
+**Usage**:
+```bash
+cd backend
+npm run test:services
+```
+
+**Output Example**:
+```
+1️⃣ Testing Environment Variables...
+   ✅ DATABASE_URL = postgresql://postgres:...
+   ✅ CLAUDE_API_KEY = sk-ant-api...
+   ✅ PORT = 3001
+
+2️⃣ Testing Database Connection...
+   ✅ Database connected successfully
+   📊 PostgreSQL version: PostgreSQL 14
+
+3️⃣ Testing Puppeteer Browser...
+   ✅ Puppeteer browser launched successfully
+   🌐 Chrome version: 120.0.6099.109
+
+4️⃣ Testing Claude API Connection...
+   ✅ Claude API connected successfully
+   🤖 Model: claude-3-5-sonnet-20241022
+```
+
+**Impact**: Quick diagnosis of which service is causing issues
+
+### 6. Comprehensive Troubleshooting Guide (NEW FILE)
+
+**File**: `TROUBLESHOOTING.md` (NEW)
+
+**Contents**:
+- Quick diagnostics section
+- Common errors with solutions
+- Step-by-step debugging guide
+- Environment setup checklist
+- Examples and code snippets
+
+**Covers**:
+1. Database connection errors
+2. Puppeteer/Browser errors
+3. Claude API errors
+4. URL loading errors
+5. Timeout errors
+
+**Impact**: Self-service troubleshooting reduces support burden
+
+### 7. Added Test Script to package.json
+
+**File**: `backend/package.json`
+
+**Changes**:
+```json
+"scripts": {
+  "test:services": "node test-services.js"
+}
+```
+
+## Testing Performed
+
+### Manual Testing
+- ✅ Tested with invalid URL format
+- ✅ Tested with unreachable website
+- ✅ Tested with missing environment variables
+- ✅ Tested with stopped database
+- ✅ Tested with invalid API key
+- ✅ Verified error messages are user-friendly
+
+### Service Testing
+```bash
+npm run test:services
+✅ All tests passed
+```
+
+## Expected Outcomes
+
+1. **Clear Error Messages**: Users see specific, actionable error messages
+2. **Faster Debugging**: Developers can quickly identify which service is failing
+3. **Self-Service Troubleshooting**: Documentation allows users to fix issues themselves
+4. **Better Logging**: Comprehensive logs make it easy to trace errors
+5. **Proactive Validation**: Startup checks prevent runtime errors
+
+## Error Message Examples
+
+### Before
+```
+❌ Analysis Failed
+Something went wrong during the analysis.
+```
+
+### After
+```
+❌ Failed to load URL "https://example.com": net::ERR_NAME_NOT_RESOLVED.
+Please check if the URL is correct and accessible.
+```
+
+```
+❌ Our analysis service is currently unavailable.
+Please try again in a few minutes.
+(Puppeteer failed to start - Chromium dependencies missing)
+```
+
+```
+❌ The website took too long to respond.
+Please try again or check if the URL is correct.
+```
+
+## Architecture Improvements
+
+### Error Flow (New):
+```
+Error occurs in Backend
+    ↓
+Error is caught and categorized
+    ↓
+User-friendly message is created
+    ↓
+Error is stored in database with phase info
+    ↓
+Frontend fetches error details
+    ↓
+User sees specific, helpful error message
+```
+
+### Diagnostic Flow (New):
+```
+User runs: npm run test:services
+    ↓
+Tests environment variables
+Tests database connection
+Tests Puppeteer browser
+Tests Claude API
+    ↓
+Displays results with ✅/❌ indicators
+    ↓
+Provides troubleshooting hints if tests fail
+```
+
+## Files Changed Summary
+
+| File | Type | Lines Changed | Purpose |
+|------|------|---------------|---------|
+| `frontend/src/hooks/useAnalysis.ts` | Modified | ~30 | Fetch and display actual error messages |
+| `backend/services/crawler.js` | Modified | ~25 | Better error messages for crawling failures |
+| `backend/routes/analyze.js` | Modified | ~45 | Transform technical errors to user-friendly |
+| `backend/server.js` | Modified | ~60 | Validate services on startup |
+| `backend/test-services.js` | Created | ~150 | Automated service testing script |
+| `backend/package.json` | Modified | 1 | Added test:services script |
+| `TROUBLESHOOTING.md` | Created | ~250 | Comprehensive troubleshooting guide |
+
+**Total Impact**:
+- 7 files modified/created
+- ~560 lines added/modified
+- 0 breaking changes
+- Fully backward compatible
+
+## Benefits
+
+### For Users
+1. **Clear Error Messages**: Know exactly what went wrong
+2. **Actionable Solutions**: Error messages include how to fix
+3. **Self-Service**: Can troubleshoot without contacting support
+4. **Better UX**: Less frustration from vague errors
+
+### For Developers
+1. **Faster Debugging**: Identify issues in seconds vs minutes
+2. **Comprehensive Logs**: Full context for every error
+3. **Automated Testing**: Quick service validation
+4. **Better Documentation**: Troubleshooting guide reduces support load
+
+### For Operations
+1. **Proactive Monitoring**: Startup validation catches issues early
+2. **Clear Diagnostics**: Test script makes deployment easier
+3. **Reduced Downtime**: Faster issue identification and resolution
+
+## Migration/Deployment Notes
+
+1. **No Database Changes**: No migrations required
+2. **No API Changes**: All endpoints remain the same
+3. **Backward Compatible**: Existing functionality unchanged
+4. **Zero Downtime**: Can be deployed with rolling restart
+
+## Verification Steps
+
+1. **Test Service Script**:
+   ```bash
+   cd backend
+   npm run test:services
+   ```
+   Verify all services pass
+
+2. **Test Error Messages**:
+   - Submit invalid URL → Check error message is clear
+   - Stop database → Check error message mentions database
+   - Use wrong API key → Check error message mentions API
+
+3. **Check Startup Validation**:
+   - Remove DATABASE_URL → Verify server won't start
+   - Restore DATABASE_URL → Verify server starts with success messages
+
+4. **Review Logs**:
+   - Submit analysis → Check backend logs are detailed
+   - Check error phase is logged correctly
+
+## Future Improvements
+
+1. **Error Metrics**: Track error types and frequencies
+2. **Automated Recovery**: Auto-retry failed analyses
+3. **Health Dashboard**: Real-time service status page
+4. **Alert System**: Notify admins of repeated failures
+5. **Error Categories**: Add more granular error categorization

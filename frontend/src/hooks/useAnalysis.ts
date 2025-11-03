@@ -147,7 +147,7 @@ export const useAnalysisFlow = () => {
     setErrorState({ hasError: false });
   }, []);
 
-  // Update loading state based on status
+  // Update loading state based on status and fetch full analysis on failure to get error details
   useEffect(() => {
     console.log('🔄 useAnalysisFlow status effect:', {
       hasStatusData: !!status.data,
@@ -155,20 +155,23 @@ export const useAnalysisFlow = () => {
       isLoadingState: loadingState.isLoading,
       currentAnalysisId
     });
-    
+
     if (status.data && loadingState.isLoading) {
       const { status: analysisStatus, progress } = status.data;
-      
+
       console.log('📊 Processing status update:', {
         analysisStatus,
         progress,
         analysisId: currentAnalysisId
       });
-      
+
       let message = 'Processing...';
       switch (analysisStatus) {
         case 'pending':
           message = 'Preparing analysis...';
+          break;
+        case 'processing':
+          message = 'Crawling and analyzing website...';
           break;
         case 'crawling':
           message = 'Crawling website...';
@@ -181,8 +184,24 @@ export const useAnalysisFlow = () => {
           setLoadingState({ isLoading: false });
           return;
         case 'failed':
-          console.log('❌ Analysis flow detected failure');
-          setErrorState({ hasError: true, message: 'Analysis failed' });
+          console.log('❌ Analysis flow detected failure, fetching error details...');
+          // Fetch full analysis to get error message
+          if (currentAnalysisId) {
+            analysisApi.getById(currentAnalysisId)
+              .then((fullAnalysis) => {
+                const errorMsg = fullAnalysis.errorMessage ||
+                               (typeof fullAnalysis.error === 'string' ? fullAnalysis.error : null) ||
+                               'Analysis failed. Please try again.';
+                console.error('❌ Analysis error details:', errorMsg);
+                setErrorState({ hasError: true, message: errorMsg });
+              })
+              .catch((err) => {
+                console.error('❌ Failed to fetch error details:', err);
+                setErrorState({ hasError: true, message: 'Analysis failed. Please check the console for details.' });
+              });
+          } else {
+            setErrorState({ hasError: true, message: 'Analysis failed' });
+          }
           setLoadingState({ isLoading: false });
           return;
         case 'cancelled':
@@ -190,12 +209,12 @@ export const useAnalysisFlow = () => {
           setLoadingState({ isLoading: false });
           return;
       }
-      
+
       if (analysisStatus !== 'completed' && analysisStatus !== 'failed' && analysisStatus !== 'cancelled') {
-        setLoadingState({ 
-          isLoading: true, 
-          message, 
-          progress 
+        setLoadingState({
+          isLoading: true,
+          message,
+          progress
         });
       }
     }

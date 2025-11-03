@@ -503,15 +503,32 @@ async function processAnalysis(analysisId, url, promptIds, options) {
     console.error(`❌ Error message:`, error.message);
     console.error(`❌ Error stack:`, error.stack);
 
-    // Create detailed error message
-    const errorMessage = error.message || 'Unknown error occurred';
+    // Create detailed, user-friendly error message
+    let userFriendlyMessage = error.message || 'Unknown error occurred during analysis';
+
+    // Make error message more user-friendly
+    if (error.message) {
+      if (error.message.includes('ECONNREFUSED') || error.message.includes('Failed to start browser')) {
+        userFriendlyMessage = 'Our analysis service is currently unavailable. Please try again in a few minutes.';
+      } else if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+        userFriendlyMessage = 'The website took too long to respond. Please try again or check if the URL is correct.';
+      } else if (error.message.includes('Failed to load URL') || error.message.includes('Navigation')) {
+        userFriendlyMessage = error.message; // Already user-friendly from crawler
+      } else if (error.message.includes('AI analysis failed')) {
+        userFriendlyMessage = 'AI analysis encountered an error. This may be due to rate limits or API issues. Please try again.';
+      } else if (error.message.includes('database') || error.message.includes('Database')) {
+        userFriendlyMessage = 'Database error occurred. Please try again or contact support.';
+      }
+    }
+
     const errorDetails = {
-      message: errorMessage,
+      message: userFriendlyMessage,
+      technicalDetails: error.message,
       timestamp: new Date().toISOString(),
       url: url,
-      phase: error.message.includes('crawl') ? 'crawling' :
-             error.message.includes('AI') ? 'ai_analysis' :
-             error.message.includes('store') || error.message.includes('storage') ? 'data_storage' :
+      phase: error.message.includes('crawl') || error.message.includes('browser') ? 'crawling' :
+             error.message.includes('AI') || error.message.includes('analysis') ? 'ai_analysis' :
+             error.message.includes('store') || error.message.includes('storage') || error.message.includes('database') ? 'data_storage' :
              'unknown'
     };
 
@@ -523,8 +540,8 @@ async function processAnalysis(analysisId, url, promptIds, options) {
             error_message = $2,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $3
-      `, ['failed', JSON.stringify(errorDetails), analysisId]);
-      console.log(`💾 Error details stored for ${analysisId}`);
+      `, ['failed', userFriendlyMessage, analysisId]);
+      console.log(`💾 Error details stored for ${analysisId}:`, userFriendlyMessage);
     } catch (updateError) {
       console.error(`❌ Failed to update error status:`, updateError.message);
     }

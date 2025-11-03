@@ -54,13 +54,21 @@ class WebCrawler {
    * @returns {Promise<Object>} Extracted data
    */
   async crawlUrl(url) {
-    console.log('[Crawler Step 1] Starting crawlUrl function...');
-    if (!this.browser) {
-      await this.initialize();
+    console.log('[Crawler Step 1] Starting crawlUrl function for:', url);
+    try {
+      if (!this.browser) {
+        console.log('[Crawler] Initializing browser...');
+        await this.initialize();
+        console.log('[Crawler] Browser initialized successfully');
+      }
+    } catch (initError) {
+      console.error('[Crawler] Browser initialization failed:', initError);
+      throw new Error(`Failed to start browser: ${initError.message}. This may be due to missing Chromium dependencies on your system.`);
     }
+
     console.log('[Crawler Step 2] Creating new page...');
     const page = await this.browser.newPage();
-    
+
     try {
       // Set user agent, viewport, and UTF-8 encoding headers
       console.log('[Crawler Step 3] Setting user agent, viewport, and encoding...');
@@ -105,15 +113,23 @@ class WebCrawler {
       // Navigate to the URL
       console.log(`[Crawler Step 4] Navigating to URL: ${url}`);
       const startTime = Date.now();
-      const response = await page.goto(url, {
-        waitUntil: ['networkidle0', 'domcontentloaded'],
-        timeout: this.options.timeout
-      });
+      let response;
+      try {
+        response = await page.goto(url, {
+          waitUntil: ['networkidle0', 'domcontentloaded'],
+          timeout: this.options.timeout
+        });
+      } catch (navError) {
+        console.error('[Crawler] Navigation failed:', navError.message);
+        throw new Error(`Failed to load URL "${url}": ${navError.message}. Please check if the URL is correct and accessible.`);
+      }
+
       const loadTime = Date.now() - startTime;
       console.log(`[Crawler Step 5] Navigation complete with status: ${response.status()}`);
 
       if (!response || !response.ok()) {
-        throw new Error(`Failed to load page: ${response ? response.status() : 'No response'}`);
+        const statusCode = response ? response.status() : 'unknown';
+        throw new Error(`Website returned error status ${statusCode}. Please check if the URL is correct and the website is online.`);
       }
 
 
@@ -459,10 +475,19 @@ class WebCrawler {
       return result;
 
     } catch (error) {
-      console.error(`Failed to crawl ${url}:`, error);
-      throw error;
+      console.error(`[Crawler] Failed to crawl ${url}:`, error.message);
+      console.error(`[Crawler] Error stack:`, error.stack);
+      // Re-throw with more context if it's not already a detailed error
+      if (error.message && error.message.includes('Failed to')) {
+        throw error;
+      } else {
+        throw new Error(`Crawling failed: ${error.message}`);
+      }
     } finally {
-      await page.close();
+      if (page && !page.isClosed()) {
+        console.log('[Crawler] Closing page...');
+        await page.close();
+      }
     }
   }
 

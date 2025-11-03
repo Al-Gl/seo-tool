@@ -190,10 +190,32 @@ process.on('uncaughtException', (error) => {
  */
 async function startServer() {
   try {
+    console.log('🔄 Starting server initialization...');
+
+    // Validate required environment variables
+    console.log('🔍 Checking environment variables...');
+    const requiredEnvVars = ['DATABASE_URL', 'CLAUDE_API_KEY'];
+    const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+    if (missingEnvVars.length > 0) {
+      console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+      console.error('Please check your backend/.env file and ensure all required variables are set.');
+      process.exit(1);
+    }
+    console.log('✅ Environment variables validated');
+
     // Initialize database
+    console.log('🔄 Initializing database...');
     await initializeDatabase();
-    console.log('Database initialized successfully');
-    
+    console.log('✅ Database initialized successfully');
+
+    // Test database connection
+    console.log('🔄 Testing database connection...');
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    console.log('✅ Database connection verified');
+
     // Start the server
     app.listen(PORT, () => {
       console.log(`
@@ -202,13 +224,26 @@ async function startServer() {
 ========================================
 Port: ${PORT}
 Environment: ${process.env.NODE_ENV || 'development'}
-Database: PostgreSQL
+Database: PostgreSQL (Connected)
+AI Service: Claude API (Configured)
 Time: ${new Date().toISOString()}
+========================================
+Available Endpoints:
+- GET  /api/health       - Health check
+- POST /api/analyze      - Submit analysis
+- GET  /api/analyze/:id  - Get analysis
+- GET  /api/prompts      - List prompts
 ========================================
       `);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error.message);
+    console.error('Stack trace:', error.stack);
+    console.error('\n💡 Common issues:');
+    console.error('  1. PostgreSQL is not running');
+    console.error('  2. DATABASE_URL in .env is incorrect');
+    console.error('  3. CLAUDE_API_KEY is missing or invalid');
+    console.error('  4. Database connection is refused\n');
     process.exit(1);
   }
 }
