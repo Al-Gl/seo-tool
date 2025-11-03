@@ -1,0 +1,24 @@
+# render.yaml (Final Docker Version)
+
+databases:
+  - name: seo-tool-db
+    region: frankfurt
+    plan: free
+
+services:
+  - type: web
+    name: seo-tool-api
+    # This tells Render to use the Dockerfile in the rootDir
+    env: docker
+    region: frankfurt
+    # The Dockerfile is located in the 'backend' directory
+    rootDir: backend
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: seo-tool-db
+          property: connectionString

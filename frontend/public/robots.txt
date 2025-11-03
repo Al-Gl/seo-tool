@@ -1,0 +1,13 @@
+# SEO Crawler & AI Analysis Platform - Robots.txt
+# This allows search engines to index the public-facing parts of our SEO tool
+
+User-agent: *
+Allow: /
+Allow: /analysis/*
+
+# Block admin and API routes from search engine indexing
+Disallow: /admin
+Disallow: /api/
+
+# Add sitemap (when available)
+# Sitemap: https://yourdomain.com/sitemap.xml

@@ -1,0 +1,60 @@
+# Railway deployment configuration for SEO Crawler Backend
+[build]
+builder = "NIXPACKS"
+
+[build.env]
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "false"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Database plugin configuration
+[[services]]
+name = "backend"
+source = "backend/"
+
+[services.env]
+NODE_ENV = "production"
+PORT = "${{ PORT }}"
+DATABASE_URL = "${{ POSTGRES.DATABASE_URL }}"
+GEMINI_API_KEY = "${{ GEMINI_API_KEY }}"
+CLAUDE_API_KEY = "${{ CLAUDE_API_KEY }}"
+JWT_SECRET = "${{ JWT_SECRET }}"
+SESSION_SECRET = "${{ SESSION_SECRET }}"
+APP_URL = "${{ FRONTEND_URL }}"
+ENABLE_CACHING = "true"
+MAX_CRAWL_DEPTH = "3"
+ANALYSIS_TIMEOUT = "300000"
+
+[services.build]
+buildCommand = "npm install && npm run build"
+startCommand = "npm start"
+
+[services.networking]
+serviceDomain = "seo-crawler-backend"
+
+# PostgreSQL database service
+[[services]]
+name = "postgres"
+plugin = "postgresql"
+
+[services.env]
+POSTGRES_DB = "seo_crawler"
+POSTGRES_USER = "seo_user"
+POSTGRES_PASSWORD = "${{ POSTGRES_PASSWORD }}"
+
+# Volume mounts for persistent data
+[[services.volumes]]
+mountPath = "/app/reports"
+name = "reports"
+
+# Health check configuration
+[services.healthcheck]
+path = "/health"
+intervalSeconds = 30
+timeoutSeconds = 10
+retries = 3

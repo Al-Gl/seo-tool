@@ -1,0 +1,21 @@
+{
+  "name": "SEO Crawler & AI Analysis Platform",
+  "short_name": "SEO Analyzer",
+  "description": "Professional SEO analysis tool powered by AI technology",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "utilities", "business"],
+  "lang": "en",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "dir": "ltr"
+}

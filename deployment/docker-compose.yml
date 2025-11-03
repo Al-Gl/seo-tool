@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: seo_crawler_db
+    environment:
+      POSTGRES_DB: seo_crawler
+      POSTGRES_USER: seo_user
+      POSTGRES_PASSWORD: seo_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database/migrations:/docker-entrypoint-initdb.d/migrations
+      - ../database/seeds:/docker-entrypoint-initdb.d/seeds
+    ports:
+      - "5432:5432"
+    networks:
+      - seo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seo_user -d seo_crawler"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 80s
+
+  # Backend API Server
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../deployment/Dockerfile.backend
+    container_name: seo_crawler_backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://seo_user:seo_password@postgres:5432/seo_crawler
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+      APP_URL: http://localhost:3000
+      API_BASE_URL: http://localhost:3001
+      ENABLE_CACHING: true
+      MAX_CRAWL_DEPTH: 3
+      ANALYSIS_TIMEOUT: 300000
+      JWT_SECRET: ${JWT_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - seo_network
+    volumes:
+      - ../reports:/app/reports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Next.js Application
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../deployment/Dockerfile.frontend
+    container_name: seo_crawler_frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - seo_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for Caching (Optional - for performance)
+  redis:
+    image: redis:7-alpine
+    container_name: seo_crawler_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - seo_network
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  seo_network:
+    driver: bridge

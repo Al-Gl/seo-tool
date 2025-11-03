@@ -1,0 +1,59 @@
+{
+  "name": "seo-crawler-platform",
+  "version": "1.0.0",
+  "description": "SEO Crawler & AI Analysis Platform - A comprehensive tool for analyzing websites and providing AI-powered SEO recommendations",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm start",
+    "db:setup": "node database/setup.js init",
+    "db:migrate": "node database/setup.js migrate",
+    "db:seed": "node database/setup.js seed",
+    "db:reset": "node database/setup.js reset",
+    "db:test": "node database/setup.js test",
+    "docker:build": "docker-compose -f deployment/docker-compose.yml build",
+    "docker:up": "docker-compose -f deployment/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f deployment/docker-compose.yml down",
+    "docker:logs": "docker-compose -f deployment/docker-compose.yml logs -f",
+    "lint": "cd frontend && npm run lint && cd ../backend && npm run lint",
+    "type-check": "cd frontend && npm run type-check",
+    "test": "cd frontend && npm test && cd ../backend && npm test",
+    "clean": "rm -rf frontend/.next frontend/out backend/dist node_modules frontend/node_modules backend/node_modules"
+  },
+  "keywords": [
+    "seo",
+    "web-crawler",
+    "ai-analysis",
+    "gemini",
+    "next.js",
+    "express",
+    "puppeteer",
+    "postgresql"
+  ],
+  "author": "SEO Crawler Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/seo-crawler-platform.git"
+  }
+}
