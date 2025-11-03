@@ -1818,17 +1818,46 @@ Analysis Results: ${JSON.stringify(analysis, null, 2)}
       hierarchy: {}
     };
 
-    if (!headings || headings.length === 0) {
+    // Check if headings exists and has data
+    if (!headings) {
       validation.issues.push('No headings found');
       validation.recommendations.push('Add proper heading structure (H1, H2, H3) with target keywords');
       return validation;
     }
 
-    // Count headings by level
-    headings.forEach(heading => {
-      const level = `h${heading.level}`;
-      validation.hierarchy[level] = (validation.hierarchy[level] || 0) + 1;
-    });
+    // Handle object structure: {h1: [], h2: [], h3: [], ...} (from crawler)
+    if (typeof headings === 'object' && !Array.isArray(headings)) {
+      let totalHeadings = 0;
+      Object.keys(headings).forEach(level => {
+        const count = Array.isArray(headings[level]) ? headings[level].length : 0;
+        validation.hierarchy[level] = count;
+        totalHeadings += count;
+      });
+
+      // Check if there are any headings at all
+      if (totalHeadings === 0) {
+        validation.issues.push('No headings found');
+        validation.recommendations.push('Add proper heading structure (H1, H2, H3) with target keywords');
+        return validation;
+      }
+    }
+    // Handle array structure: [{level: 1, text: "..."}, ...] (legacy/alternative format)
+    else if (Array.isArray(headings)) {
+      if (headings.length === 0) {
+        validation.issues.push('No headings found');
+        validation.recommendations.push('Add proper heading structure (H1, H2, H3) with target keywords');
+        return validation;
+      }
+
+      headings.forEach(heading => {
+        const level = `h${heading.level}`;
+        validation.hierarchy[level] = (validation.hierarchy[level] || 0) + 1;
+      });
+    } else {
+      // Unexpected format
+      validation.issues.push('Invalid heading data structure');
+      return validation;
+    }
 
     // H1 validation
     if (!validation.hierarchy.h1) {
