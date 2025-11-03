@@ -20,7 +20,7 @@ class AIAnalyzer {
     });
 
     // Configuration
-    this.modelName = "claude-3-5-sonnet-20240620";
+    this.modelName = "claude-3-haiku-20240307";
     this.maxTokens = 4096;
     this.temperature = 0.7;
   }
