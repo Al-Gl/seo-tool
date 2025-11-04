@@ -20,7 +20,7 @@ class AIAnalyzer {
     });
 
     // Configuration
-    this.modelName = process.env.CLAUDE_MODEL || "claude-3-5-sonnet-20241022";
+    this.modelName = process.env.CLAUDE_MODEL || "claude-sonnet-4-5-20250929";
     this.maxTokens = 4096;
     this.temperature = 0.7;
   }
